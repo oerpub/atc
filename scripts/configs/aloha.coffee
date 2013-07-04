@@ -46,7 +46,7 @@ define ['jquery'], ($) ->
         'common/paste'
         'common/block'
         'common/list'
-        'common/table'
+        'oer/table'
         'extra/draganddropfiles'
         'common/image'
         'oer/popover'
