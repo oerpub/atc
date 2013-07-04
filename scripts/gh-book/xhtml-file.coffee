@@ -16,8 +16,15 @@ define [
   return class XhtmlModel extends ModuleModel
     mediaType: 'application/xhtml+xml'
 
+    defaults:
+      title: null
+
     initialize: () ->
-      @set 'title', @id, {silent:true}
+      # Clear that the title on the model has changed
+      # so it does not get saved unnecessarily.
+      # The title of the XhtmlFile is not stored inside the file;
+      # it is stored in the navigation file
+      @on 'change:title', () => delete @changed['title']
 
     parse: (html) ->
 
@@ -87,7 +94,7 @@ define [
           return
 
         # Load the image file somehow (see below for my github.js changes)
-        doneLoading = imageModel.fetch()
+        doneLoading = imageModel.load()
         .done (bytes, statusMessage, xhr) =>
           # Grab the mediaType from the response header (or look in the EPUB3 OPF file)
           mediaType = imageModel.mediaType # xhr.getResponseHeader('Content-Type').split(';')[0]
@@ -103,3 +110,29 @@ define [
           $img.attr('src', 'path/to/failure.png')
 
       return {head: $head[0]?.innerHTML, body: $body[0]?.innerHTML}
+
+
+    serialize: ->
+      head = @get 'head'
+      body = @get 'body'
+      $head = jQuery("<div class='unwrap-me'>#{head}</div>")
+      $body = jQuery("<div class='unwrap-me'>#{body}</div>")
+
+      # Replace all the `img[data-src]` attributes with `img[src]`
+      $body.find('img[data-src]').each (i, img) ->
+        $img = jQuery(img)
+        src = $img.attr('data-src')
+        $img.removeAttr('data-src')
+        $img.attr 'src', src
+
+      return """
+        <?xml version="1.0" encoding="UTF-8"?>
+        <html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops">
+          <head>
+            #{$head[0].innerHTML}
+          </head>
+          <body>
+            #{$body[0].innerHTML}
+          </body>
+        </html>
+        """

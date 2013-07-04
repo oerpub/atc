@@ -11,8 +11,7 @@ define [
   # * `subjects` - an array of strings (eg `['Mathematics', 'Business']`)
   # * `keywords` - an array of keywords (eg `['constant', 'boltzmann constant']`)
   # * `authors` - an `Collection` of `User`s that are attributed as authors
-  class Module extends BaseModel
-
+  return class Module extends BaseModel
     mediaType: 'application/vnd.org.cnx.module'
     accept: []
     defaults:
@@ -26,14 +25,6 @@ define [
       translators: []
       # Default language for new content is the browser's language
       language: navigator?.language or navigator?.userLanguage or 'en'
-
-    load: () ->
-      if not @_loading
-        @_loading = @fetch()
-        @_loading.done () =>
-          @trigger('loaded')
-          @loaded = true
-      @_loading
 
     # Begin editing this medium as soon as it is added
     addAction: () ->

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Downloads a single file (like jQuery) from a remote URL
 function singleFile () {
@@ -45,7 +45,7 @@ cd "../../"
 
 fromGithub "https://github.com/FortAwesome/Font-Awesome" "v3.1.1" "3.1.1" "font-awesome"
 
-fromGithub "https://github.com/ivaynberg/select2" "3.4.0"
+fromGithub "https://github.com/ivaynberg/select2" "3.4.1"
 fromGithub "https://github.com/pivotal/jasmine" "v1.3.1" "1.3.1"
 fromGithub "https://github.com/appendto/jquery-mockjax" "v1.5.2" "1.5.2"
 
@@ -59,5 +59,5 @@ singleFile "https://raw.github.com/documentcloud/backbone/1.0.0/backbone.js" "ba
 singleFile "https://raw.github.com/marionettejs/backbone.marionette/v1.0.3/lib/backbone.marionette.js" "backbone.marionette.js"
 cd "../"
 
-fromGithub "https://github.com/oerpub/Aloha-Editor" "master" "" "aloha-editor"
+fromGithub "https://github.com/oerpub/Aloha-Editor" "testing" "" "aloha-editor"
 fromGithub "https://github.com/twitter/bootstrap" "v2.3.2" "2.3.2"

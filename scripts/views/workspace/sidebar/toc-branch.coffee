@@ -7,7 +7,7 @@ define [
   'hbs!templates/workspace/sidebar/toc-branch'
 ], ($, _, Backbone, Marionette, EnableDnD, tocBranchTemplate) ->
 
-  class TocBranchView extends Marionette.CompositeView
+  return class TocBranchView extends Marionette.CompositeView
     tagName: "li"
     itemViewContainer: '> ol'
 
@@ -42,14 +42,14 @@ define [
       # Add DnD options to content
       EnableDnD.enableContentDnD(@model, @$el.find('> .editor-node-body > *[data-media-type]'))
 
-      if @model.parent
-        EnableDnD.enableDropAfter(@model, @model.parent, @$el.find('> .editor-drop-zone-after'))
+      if @model.getParent?()
+        EnableDnD.enableDropAfter(@model, @model.getParent(), @$el.find('> .editor-drop-zone-after'))
 
       return result
 
     templateHelpers: () ->
       return {
-        hasParent: !! @model.parent
+        hasParent: !! @model.getParent?()
         hasChildren: !! @model.getChildren?()?.length
         isExpanded: @expanded
       }

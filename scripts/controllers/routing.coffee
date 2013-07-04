@@ -9,7 +9,7 @@ define [
   'less!styles/main.less'
 ], ($, _, Backbone, Marionette, app, content, WorkspaceLayout) ->
 
-  return new (class AppController extends Marionette.Controller
+  return new class Router extends Marionette.AppRouter
     # Show Workspace
     # -------
     # Show the workspace listing and update the URL
@@ -19,7 +19,7 @@ define [
         app.main.show(@layout)
       else
         # load default views
-        @layout.load()
+        @layout.showViews()
 
     # Edit existing content
     # -------
@@ -38,5 +38,4 @@ define [
         app.main.show(@layout)
       else
         # load editor views
-        @layout.load({model: model})
-  )()
+        @layout.showViews({model: model})
