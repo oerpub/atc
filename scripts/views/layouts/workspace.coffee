@@ -10,7 +10,7 @@ define [
   'hbs!templates/layouts/workspace'
 ], ($, _, Backbone, Marionette, content, SearchResultsView, menuLayout, sidebarLayout, workspaceTemplate) ->
 
-  class Workspace extends Marionette.Layout
+  return class Workspace extends Marionette.Layout
     template: workspaceTemplate
 
     regions:
@@ -19,9 +19,9 @@ define [
       sidebar: '#sidebar'
 
     onRender: () ->
-      @load(@model)
+      @showViews()
 
-    load: (options) ->
+    showViews: (options) ->
       @model = options?.model
 
       # Make sure the menu is loaded

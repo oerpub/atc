@@ -13,11 +13,10 @@ define [
   'backbone'
   'cs!session'
   'cs!collections/media-types'
-], ($, _, Backbone, session, mediaTypes) ->
+  'cs!mixins/loadable'
+], ($, _, Backbone, session, mediaTypes, loadable) ->
 
-  _loaded = $.Deferred()
-
-  return new (class AllContent extends Backbone.Collection
+  class AllContent extends Backbone.Collection
     url: '/api/content'
 
     initialize: () ->
@@ -29,8 +28,6 @@ define [
       if attrs.mediaType
         mediaType = attrs.mediaType
         Medium = mediaTypes.type(mediaType)
-        # Include the `mediaType` in case models support multiple media types (like images).
-        #delete attrs.mediaType
 
         return new Medium(attrs)
 
@@ -39,18 +36,42 @@ define [
     branches: () ->
       return _.where(@models, {branch: true})
 
-    load: () ->
-      promises = []
 
-      @fetch
-        success: (data, response, options) =>
-          _.each data.models, (model) ->
-            if typeof model.promise is 'function'
-              promises.push(model.promise())
+    # Extend the `load()` to wait until all content is loaded
+    _loadComplex: (fetchPromise) ->
+      promise = new $.Deferred()
+      fetchPromise.done () =>
+        contentPromises = @map (model) => model.load()
+        $.when.apply($, contentPromises).done () =>
+          promise.resolve(@)
+          @trigger('change')
+      return promise
 
-          _loaded.resolve()
 
-          $.when.apply($, promises).done () =>
-            @trigger('change')
+    loading: () ->
+      return @load().promise()
 
-  )()
+
+    save: (options) ->
+      # Save serially.
+      # Pull the next model off the queue and save it.
+      # When saving has completed, save the next model.
+      saveNextItem = (queue) =>
+        if not queue.length
+          options?.success?()
+          return
+
+        model = queue.shift()
+        model.save()
+        .fail((err) -> throw err)
+        .done () -> saveNextItem(queue)
+
+      # Save all the models that have changes
+      changedModels = @filter (model) -> model.hasChanged()
+      saveNextItem(changedModels)
+
+
+  # Mix in the loadable methods
+  AllContent = AllContent.extend loadable
+
+  return new AllContent()

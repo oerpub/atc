@@ -207,7 +207,7 @@ define [ 'aloha', 'jquery' ], (Aloha, jQuery) ->
 
   Popover =
     MILLISECS: 2000
-    register: (cfg) -> bindHelper(new Helper(cfg))
+    register: (cfg) -> bindHelper(cfg)
 
   class Helper
     constructor: (cfg) ->
