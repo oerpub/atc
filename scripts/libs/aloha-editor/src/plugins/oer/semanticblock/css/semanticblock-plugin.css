@@ -32,7 +32,14 @@
 }
 
 .semantic-container.drag-active {
-    background: #FAFAFA;
+    background: #F0F0F0;
+}
+
+.semantic-container.delete-hover {
+    background: #F0F0F0;
+}
+.semantic-container.delete-hover > .aloha-oer-block {
+    opacity: 0.3; 
 }
 
 .semantic-container {
@@ -60,6 +67,10 @@
     position: absolute;
     left: 50%;
     display: none !important; /* override the default aloha display logic for handles */
+    cursor: url('openhand.cur'), default;
+}
+.semantic-container.aloha-oer-dragging .aloha-block-handle {
+    cursor: url('closedhand.cur'), default;
 }
 .semantic-container.drag-active .aloha-block-handle {
     background-color: #F0F0F0;

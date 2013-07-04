@@ -7,7 +7,7 @@
       return pluginManager.plugins.semanticblock;
     }
     blockTemplate = jQuery('<div class="semantic-container"></div>');
-    blockControls = jQuery('<div class="semantic-controls"><button class="semantic-delete"><i class="icon-remove"></i></button></div>');
+    blockControls = jQuery('<div class="semantic-controls"><button class="semantic-delete" title="Remove this element."><i class="icon-remove"></i></button></div>');
     blockDragHelper = jQuery('<div class="semantic-drag-helper"><div class="title"></div><div class="body">Drag me to the desired location in the document</div></div>');
     activateHandlers = {};
     deactivateHandlers = {};
@@ -22,22 +22,34 @@
         name: 'mouseleave',
         selector: '.aloha-block-draghandle',
         callback: function() {
-          if (!jQuery(this).parents('.semantic-container').data('dragging')) {
+          if (!jQuery(this).parents('.semantic-container').is('.aloha-oer-dragging')) {
             return jQuery(this).parents('.semantic-container').removeClass('drag-active');
           }
+        }
+      }, {
+        name: 'mouseenter',
+        selector: '.semantic-delete',
+        callback: function() {
+          return jQuery(this).parents('.semantic-container').addClass('delete-hover');
+        }
+      }, {
+        name: 'mouseleave',
+        selector: '.semantic-delete',
+        callback: function() {
+          return jQuery(this).parents('.semantic-container').removeClass('delete-hover');
         }
       }, {
         name: 'mousedown',
         selector: '.aloha-block-draghandle',
         callback: function(e) {
           e.preventDefault();
-          return jQuery(this).parents('.semantic-container').data('dragging', true);
+          return jQuery(this).parents('.semantic-container').addClass('aloha-oer-dragging', true);
         }
       }, {
         name: 'mouseup',
         selector: '.aloha-block-draghandle',
         callback: function() {
-          return jQuery(this).parents('.semantic-container').data('dragging', false);
+          return jQuery(this).parents('.semantic-container').removeClass('aloha-oer-dragging');
         }
       }, {
         name: 'click',
@@ -54,8 +66,9 @@
         callback: function() {
           jQuery(this).parents('.semantic-container').removeClass('focused');
           if (!jQuery(this).find('.focused').length) {
-            return jQuery(this).addClass('focused');
+            jQuery(this).addClass('focused');
           }
+          return jQuery(this).find('.aloha-block-handle').attr('title', 'Drag this element to another location.');
         }
       }, {
         name: 'mouseout',
@@ -148,6 +161,11 @@
     return Plugin.create('semanticblock', {
       makeClean: function(content) {
         var selector;
+        content.find('.semantic-container').each(function() {
+          if (jQuery(this).children().not('.semantic-controls').length === 0) {
+            return jQuery(this).remove();
+          }
+        });
         for (selector in deactivateHandlers) {
           content.find(".aloha-oer-block" + selector).each(function() {
             return deactivate(jQuery(this));
