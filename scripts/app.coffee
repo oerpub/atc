@@ -17,6 +17,10 @@ define [
     # Load router
     require ['cs!routers/router'], (router) ->
       $(document).on 'click', 'a:not([data-bypass])', (e) ->
+        # Don't open a link if an earlier handler asked us not to.
+        if e.isDefaultPrevented()
+          return
+
         external = new RegExp('^((f|ht)tps?:)?//')
         href = $(@).attr('href')
 
