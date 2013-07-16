@@ -13,6 +13,7 @@ define [
       'click #sign-in': 'signInModal'
       'click #sign-out': 'signOut'
       'click #save-content': 'saveContent'
+      'click #fork-content': 'forkContent'
 
 
     initialize: () ->
@@ -22,9 +23,15 @@ define [
         # A change event can occur (ie setting a title during parsing but the changed set is still empty)
         @setDirty() if model?.hasChanged() and not (options.loading or options.parse)
 
+      @listenTo @model, 'change', () => @render()
+
       # Bind a function to the window if the user tries to navigate away from this page
       $(window).on 'beforeunload', () ->
         return 'You have unsaved changes. Are you sure you want to leave this page?' if @isDirty
+
+      # Since this View is reloaded all the time (whenever a route change occurs)
+      # re-set the `isDirty` bit.
+      @isDirty = true if allContent.some (model) -> model.isDirty()
 
     templateHelpers: () ->
       return {
@@ -47,6 +54,16 @@ define [
       $modal.modal {show:true}
 
 
+    forkContent: () ->
+
+      if not (@model.get('password') or @model.get('token'))
+        alert 'Please Sign In before trying to fork a book'
+        return
+
+      @model.getClient().getLogin().done (login) =>
+        @model.getRepo().fork().done () =>
+          @model.set 'repoUser', login
+
     signIn: () ->
       # Set the username and password in the `Auth` model
       @model.set
@@ -61,9 +78,12 @@ define [
       @trigger 'close'
 
     signOut: () ->
-      @model.set
-        password: null
-        token:    null
+      settings =
+        auth:     undefined
+        id:       undefined
+        password: undefined
+        token:    undefined
+      @model.set settings, {unset:true}
 
       @render()
 
