@@ -25,13 +25,22 @@ define [
       # so it does not get saved unnecessarily.
       # The title of the XhtmlFile is not stored inside the file;
       # it is stored in the navigation file
-      @on 'change:title', () => delete @changed['title']
+      @on 'change:title', (model, value, options) =>
+        head = @get 'head'
+        $head = jQuery("<div class='unwrap-me'>#{head}</div>")
 
-    parse: (html) ->
+        $head.children('title').text(value)
+        @set 'head', $head[0].innerHTML, options
 
-      # The result of a Github PUT is an object instead of the new state of the model.
-      # Basically ignore it.
-      return html if 'string' != typeof html
+
+    parse: (json) ->
+      # Save the commit sha so we can compare when a remote update occurs
+      @commitSha = json.sha
+      html = json.content
+
+      # If the parse is a result of a write then update the sha.
+      # The parse is a result of a GitHub.write if there is no `.content`
+      return {} if not json.content
 
       # Rename elements before jQuery parses and removes them
       # (because they are not valid children of a div)
@@ -110,7 +119,13 @@ define [
           counter--
           $img.attr('src', 'path/to/failure.png')
 
-      return {head: $head[0]?.innerHTML, body: $body[0]?.innerHTML}
+      attributes = {head:$head[0]?.innerHTML, body:$body[0]?.innerHTML}
+
+      # Set the title that is in the `<head>`
+      title = $head.children('title').text()
+      attributes.title = title if title
+
+      return attributes
 
 
     serialize: ->

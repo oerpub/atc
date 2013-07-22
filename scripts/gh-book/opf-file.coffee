@@ -87,7 +87,7 @@ define [
 
             # Set all the titles of models in the workspace based on the nav tree
             # XhtmlModel titles are not saved anyway.
-            contentModel.set 'title', title
+            contentModel.set 'title', title, {parse:true} if not contentModel.get('title')
 
             model = @newNode {title: title, htmlAttributes: attributes, model: contentModel}
 
@@ -147,8 +147,17 @@ define [
       $nav.append($navOl)
       $wrapper[0].innerHTML
 
-    parse: (xmlStr) ->
-      return xmlStr if 'string' != typeof xmlStr
+    parse: (json) ->
+      # Github.read returns a JSON with `{sha: "12345", content: "<rootfiles>...</rootfiles>"}
+      # Save the commit sha so we can compare when a remote update occurs
+      @commitSha = json.sha
+
+      xmlStr = json.content
+
+      # If the parse is a result of a write then update the sha.
+      # The parse is a result of a GitHub.write if there is no `.content`
+      return {} if not json.content
+
       @$xml = $($.parseXML xmlStr)
 
       # If we were unable to parse the XML then trigger an error

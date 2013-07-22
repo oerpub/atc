@@ -4,10 +4,11 @@ define [
   'backbone'
   'marionette'
   'moment'
+  'cs!controllers/routing'
   'cs!collections/media-types'
   'cs!helpers/enable-dnd'
   'hbs!templates/workspace/content/search-results-item'
-], ($, _, Backbone, Marionette, Moment, mediaTypes, EnableDnD, searchResultsItemTemplate) ->
+], ($, _, Backbone, Marionette, Moment, controller, mediaTypes, EnableDnD, searchResultsItemTemplate) ->
 
   # Search Result View (workspace)
   # -------
@@ -22,6 +23,11 @@ define [
 
     template: searchResultsItemTemplate
 
+    events:
+      'click .go-edit': 'goEdit'
+
+    goEdit: () -> controller.goEdit(@model)
+
     templateHelpers: () ->
       return {
         id: @model.id or @model.cid
@@ -31,15 +37,18 @@ define [
       }
 
     initialize: () ->
-      @listenTo(@model, 'change sync', @render)
-      @listenTo(@, 'render show', @updateTimer)
+      @listenTo(@model, 'dirty change sync', @render)
+      @listenTo(@, 'render show', @startUpdateTimer)
 
     onRender: () ->
       # Add DnD options to content
       EnableDnD.enableContentDnD(@model, @$el.children('*[data-media-type]'))
 
+    # Stop updating the timer when the view is detached
+    onClose: () -> @keepUpdating = false
+
     # Updates the relative time for a set of elements periodically
-    updateTimer: () ->
+    startUpdateTimer: () ->
       nextUpdate = (utcTime) ->
         now = Moment()
         diff = now.diff(utcTime) / 1000 # Put it in Seconds instead of milliseconds
@@ -54,7 +63,7 @@ define [
         return secs * 1000
 
       updateTime = ($el) =>
-        if document.contains($el.get(0))
+        if @keepUpdating
           # Generate a relative time and set it as the text of the `time` element
           utc = $el.attr('datetime')
           if utc
@@ -63,8 +72,7 @@ define [
             # Set the human-readable text for the time
             $el.text(utcTime.fromNow()) # Passing `true` would drop the suffix
 
-            @timerStarted = true
             setTimeout((() -> updateTime($el)), nextUpdate(utcTime))
 
-      if not @timerStarted
-        updateTime(@$el.find('time'))
+      @keepUpdating = true
+      updateTime(@$el.find('time'))
