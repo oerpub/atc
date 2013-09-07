@@ -209,11 +209,11 @@ define [
 
     parse: (json) ->
       # Shortcut to not override local changes if remote model did not change
-      return if @commitSha == json.sha
+      return if @blobSha == json.sha
 
       # Github.read returns a JSON with `{sha: "12345", content: "<rootfiles>...</rootfiles>"}
       # Save the commit sha so we can compare when a remote update occurs
-      @commitSha = json.sha
+      @blobSha = json.sha
 
       xmlStr = json.content
 
@@ -270,8 +270,6 @@ define [
       return {
         title: title
         bookId: bookId
-        # Include original for visual diffing later
-        _original: json.content
       }
 
     serialize: () ->
@@ -282,13 +280,13 @@ define [
     onReloaded: () ->
       for model in _.values(@_localAddedItems)
         @_addItem(model, {}, false)
-        # Uggh, the dirty bit is not set because for some reason the `@$xml` still
-        # contains the locally-added <item>
-        #
-        # So, set the isDirty() bit manually
-        @_markDirty({}, true) # true == force
+
+      isDirty = not _.isEmpty(@_localAddedItems)
+      return isDirty
+
 
     onSaved: () ->
+      super()
       @_localAddedItems = {}
 
     # FIXME HACK, horrible Hack.
@@ -304,7 +302,13 @@ define [
         @_parseNavModel()
         _.each @_localNavAdded, (model, path) => @addChild(model)
 
+        isDirty = not _.isEmpty(@_localNavAdded)
+        return isDirty
+
       onSaved = () =>
+        # Call 'Saveable.onSave' (super)
+        XhtmlFile::onSaved.bind(@navModel)()
+
         @_localNavAdded = {}
 
       @navModel.onReloaded = onReloaded
