@@ -15,6 +15,8 @@ define [
     initialize: (options) ->
 
       if @model
+        # Trigger a load so a partially populated model may "fill up"
+        @model.load?()
         @listenTo @model, 'change', (model, collection, options) => @renderModelOnly()
 
       if @collection
@@ -131,7 +133,9 @@ define [
 
     onRender: () ->
       # Add DnD options to content
-      EnableDnD.enableContentDnD(@model, @$el.find('> .editor-node-body > *[data-media-type]'))
+      $dropNode = @$el.find('> .editor-node-body')
+      $dragNode = $dropNode.find('> *[data-media-type]')
+      EnableDnD.enableContentDnD(@model, $dragNode, $dropNode)
 
       if @model.getParent?()
         EnableDnD.enableDropAfter(@model, @model.getParent(), @$el.find('> .editor-drop-zone-after'))
@@ -150,8 +154,6 @@ define [
         hasParent: !! @model.getParent?()
         hasChildren: !! @model.getChildren?()?.length
         isExpanded: @expanded
-        # Look up the overridden title
-        title: @container?.getTitle?(@model) or @model.get('title')
         # Possibly delegate to the navModel for dirty bits
         _isDirty: model.get('_isDirty')
         _hasRemoteChanges: model.get('_hasRemoteChanges')
