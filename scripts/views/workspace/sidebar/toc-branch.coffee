@@ -165,12 +165,8 @@ define [
       'click > .editor-node-body > .edit-settings': 'editSettings'
       'click > .editor-node-body .go-edit': 'goEdit'
 
-    goEdit: () ->
-      # Edit the model in the context of this folder/book. Explicitly close
-      # the picker. This is initiated from here because at this point we're
-      # certain that the request to edit was initiated by a click in the
-      # toc/picker.
-      controller.layout.showWorkspace(false)
+    goEdit: (evt) ->
+      # Edit the model in the context of this folder/book.
       controller.goEdit(@model, @model.getRoot?())
 
 

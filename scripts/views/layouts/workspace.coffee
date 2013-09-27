@@ -39,16 +39,16 @@ define [
 
     initialize: () ->
       @workspace.on 'show', =>
-        @$('#workspace-container').removeClass('tocminimized').addClass('wsminimized')
+        @$('#workspace-container').removeClass('tocminimized').removeClass('wsminimized')
 
     toggleWorkspace: () -> @$('#workspace-container').toggleClass('wsminimized')
     toggleToc: () -> @$('#workspace-container').toggleClass('tocminimized')
-    showWorkspace: (b) ->
+    showWorkspace: (b=true) ->
       if b
         @$('#workspace-container').removeClass('wsminimized')
       else
         @$('#workspace-container').addClass('wsminimized')
-    showToc: (b) ->
+    showToc: (b=true) ->
       if b
         @$('#workspace-container').removeClass('tocminimized')
       else
