@@ -3,8 +3,9 @@ define [
   'marionette'
   'cs!controllers/routing'
   'cs!helpers/enable-dnd'
+  'cs!collections/content'
   'hbs!templates/workspace/sidebar/toc-branch'
-], ($, Marionette, controller, EnableDnD, tocBranchTemplate) ->
+], ($, Marionette, controller, EnableDnD, allContent, tocBranchTemplate) ->
 
   # This class introduces a `renderModelOnly()` method that will
   # re-render only the Model part of the CompositeView.
@@ -207,7 +208,7 @@ define [
       if @model.getParent()
         @model.getParent().removeChild(@model)
       else
-        # TODO - delete book (https://www.pivotaltracker.com/story/show/58351296)
+        allContent.remove(@model).save()
 
     goEdit: () ->
       # Edit the model in the context of this folder/book. Explicitly close
