@@ -95,11 +95,6 @@ define [
     mediaTypes.add BinaryFile, {mediaType:'image/png'}
     mediaTypes.add BinaryFile, {mediaType:'image/jpeg'}
 
-    # set which media formats are allowed 
-    # at the toplevel of the content
-    for type in EpubContainer::accept
-      mediaTypes.type(type)::toplevel = true
-
     # Views use anchors with hrefs so catch the click and send it to Backbone
     $(document).on 'click', 'a:not([data-bypass]):not([href="#"])', (e) ->
       external = new RegExp('^((f|ht)tps?:)?//')
