@@ -287,7 +287,6 @@ define [
               controller.goEdit(id, contextModel)
 
           goDefault: (repoUser, repoName, branch) ->
-            _router = @
             @_loadFirst(repoUser, repoName, branch).done () ->
               require ['cs!gh-book/opf-file'], (OpfFile) ->
                 # Find the first opf file.
@@ -310,7 +309,14 @@ define [
           if not _.isEmpty _.pick(session.changed, ['repoUser', 'repoName', 'branch'])
             remoteUpdater.stop()
             onFail(epubContainer.reload(), 'There was a problem re-loading the repo')
-
+            .done () ->
+              # Get the first book from the epub
+              opf = epubContainer.children.at(0)
+              if opf
+                opf.load().done () ->
+                  # When that book is loaded, edit it.
+                  model = opf.findDescendantDFS (model) -> model.getChildren().isEmpty()
+                  controller.goEdit model, opf
 
         Backbone.history.start
           pushState: false
