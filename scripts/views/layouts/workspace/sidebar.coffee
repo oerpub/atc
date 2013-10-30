@@ -39,7 +39,8 @@ define [
         collection.setFilter (content)  -> return content.getChildren
         # TODO: Remove `topLevel` from all models
         @filteredMediaTypes.setFilter (type) ->
-          # Filter the types to exclude Chapters and other non-loadable content
+          # Filter the types to exclude Chapters and other non-loadable content.
+          # Written this way to support `gh-book` **and** `atc`; if something is loadable then it is creatable.
           return type.get('modelType')::load
 
 
