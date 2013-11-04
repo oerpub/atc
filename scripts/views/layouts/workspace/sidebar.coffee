@@ -37,7 +37,12 @@ define [
         # This is the Picker/Roots Sidebar
         collection = new Backbone.FilteredCollection(null, {collection:collection})
         collection.setFilter (content)  -> return content.getChildren
-        @filteredMediaTypes.setFilter (type) -> return type.get('modelType')::toplevel
+        # TODO: Remove `topLevel` from all models
+        @filteredMediaTypes.setFilter (type) ->
+          # Filter the types to exclude Chapters and other non-loadable content.
+          # Written this way to support `gh-book` **and** `atc`; if something is loadable then it is creatable.
+          return type.get('modelType')::load
+
 
       # TODO: Make the collection a FilteredCollection that only shows @model.accepts
       @addContent.show(new AddView {context:model, collection:@filteredMediaTypes})
