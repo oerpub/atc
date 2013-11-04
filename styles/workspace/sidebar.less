@@ -107,11 +107,11 @@
 
 #workspace-container {
   width: 100%;
-  min-width: 1500px;
+  min-width: @workspace-min-width;
 
   // workspace minimized
   &.workspace-minimized {
-    min-width: (1500-@picker-width+@aside-handle-width);
+    min-width: (@workspace-min-width - @picker-width + @aside-handle-width);
 
     #menu-and-content {
       width: calc(~"100%" - @toc-width+@aside-handle-width);
@@ -140,7 +140,7 @@
 
   // sidebar minimized (#sidebar is the table of contents)
   &.sidebar-minimized {
-    min-width: (1500-@toc-width+@aside-handle-width);
+    min-width: (@workspace-min-width - @toc-width + @aside-handle-width);
 
     #menu-and-content {
       width: calc(~"100%" - @picker-width+@aside-handle-width);
@@ -170,7 +170,7 @@
 
   // workspace and sidebar minimized
   &.workspace-minimized.sidebar-minimized {
-    min-width: (1500 - @toc-width - @picker-width + @aside-handle-width*2);
+    min-width: (@workspace-min-width - @toc-width - @picker-width + @aside-handle-width*2);
 
     #menu-and-content {
       width: calc(~"100%" - @aside-handle-width*2);
@@ -233,6 +233,8 @@
 @aside-handle-width: 30px;
 @aside-handle-width-expanded: 0px;
 @boxed-group-header-height: 42px;
+@menu-and-content-min-width: 800px;
+@workspace-min-width: (@menu-and-content-min-width + @picker-width + @toc-width);
 
 aside > div {
 
@@ -301,10 +303,12 @@ aside > div {
       margin: 10px;
     }
 
-    li > .editor-node-body:not(:hover) > div > .edit-settings { display: none; }
-    li > .editor-node-body:hover       > div > .edit-settings { display: inline-block; }
+    li > .editor-node-body:not(:hover) > div.module-controls > a { display: none; }
+    li > .editor-node-body:hover       > div.module-controls > a { display: inline-block; }
 
-    li > .editor-node-body > div.open > .btn-mini.pull-right.edit-settings {
+    li.active > div > div.module-controls > .delete-module { display: none; }
+
+    li > .editor-node-body > div.open > .module-controls > a {
         display: inline-block;
     } 
 
@@ -372,16 +376,21 @@ aside#sidebar > div { // TOC
 
   >h3, .heading {
     cursor: pointer;
-    font-size: 14px;
-    // Copying "Editor: [module title]" style, for the most part
-    color: #fff;
-    margin: 0;
-    line-height: 20px;
-    height: 30px;
-    font-family: Verdana, 'DejaVu Sans', Tahoma;
-    padding-top: 8px;
-    padding-left: 20px;
+    font-size: @panel-heading-size;
+    color: @panel-heading-color;
+    height: @panel-heading-height;
+    font-family: @panel-heading-font;
+    margin: 0; // undo default h3
+    line-height: @panel-heading-line-height;
+    font-weight: @panel-heading-weight;
     padding-right: @aside-handle-width; // to account for "closer" icon
+
+    .title-text {
+      color: @panel-heading-color;
+      display: block;
+      padding: @panel-heading-padding;
+    }   
+
   }
   
   .add-content{
@@ -406,7 +415,7 @@ aside#sidebar > div { // TOC
   
   .boxed-group-inner {
     overflow: auto;
-    height: calc(~"100% - 82px");
+    height: calc(~"100% - 87px");
     color: #666;
     font-size: 13px;
   }
@@ -441,15 +450,12 @@ aside#sidebar > div { // TOC
     /* Max width is set based on the <li> nesting depth */
   }
 
-
-  nav li .btn-mini.pull-right,
   .boxed-group-list>li .minibutton {
     float: right;
     margin: -1px 0 0 10px;
   }
 
-
-  nav li .btn-mini.pull-right,
+  nav li .module-controls > a,
   .context-button {
     position: relative;
     display: inline-block;
@@ -458,35 +464,20 @@ aside#sidebar > div { // TOC
   }
 
 
-  nav li .btn-mini.pull-right,
+  nav li .module-controls > a,
   .minibutton {
-    padding: 0 10px;
-    line-height: 24px;
+    padding: 0 5px 0 0;
     box-shadow: none;
-
     outline: none;
   }
 
-  nav li .btn-mini.pull-right,
+  nav li .module-controls > a,
   .button, .minibutton {
     position: relative;
     display: inline-block;
-    //padding: 7px 15px;
-    //font-size: 13px;
     font-weight: bold;
     color: #333;
-    text-shadow: 0 1px 0 rgba(255,255,255,0.9);
     white-space: nowrap;
-    background-color: #eaeaea;
-    background-image: -moz-linear-gradient(#fafafa, #eaeaea);
-    background-image: -webkit-linear-gradient(#fafafa, #eaeaea);
-    background-image: linear-gradient(#fafafa, #eaeaea);
-    background-repeat: repeat-x;
-    border-radius: 3px;
-    border: 1px solid #ddd;
-    border-bottom-color: #c5c5c5;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    vertical-align: middle;
     cursor: pointer;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -497,8 +488,6 @@ aside#sidebar > div { // TOC
     -webkit-appearance: none;
   }
 
-
-  nav li .btn-mini.pull-right:before,
   .context-button:before {
     position: absolute;
     top: 3px;
@@ -509,11 +498,13 @@ aside#sidebar > div { // TOC
     font-size: 16px;
     line-height: 16px;
   }
-
-
 }
 
 
+#menu-and-content .boxed-group-inner {
+  padding-top: 41px; /* To allow space for semantic draggables */
+  margin-top: -41px;
+}
 
 
 

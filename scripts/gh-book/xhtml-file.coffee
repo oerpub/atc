@@ -7,7 +7,7 @@ define [
   'cs!gh-book/binary-file'
   'cs!models/content/module'
   'cs!collections/content'
-  'cs!gh-book/utils'
+  'cs!models/utils'
 ], (_, $, Backbone, jsSHA, uuid, BinaryFile, ModuleModel, allContent, Utils) ->
 
 
@@ -62,12 +62,13 @@ define [
     defaults:
       title: 'Untitled'
 
-    initialize: () ->
-      super()
+    initialize: (options) ->
+      super(options)
 
       # Give the content an id if it does not already have one
-      @setNew() if not @id
-      @id ?= "content/#{uuid()}"
+      if not @id
+        @setNew()
+        @id = "content/#{uuid(@get('title'))}#{options.extension || '.html'}"
 
       # Clear that the title on the model has changed
       # so it does not get saved unnecessarily.
@@ -122,7 +123,7 @@ define [
     # This promise is resolved once the file is parsed so we know which images to load
     _imagesLoaded: new $.Deferred()
     _loadComplex: (originalPromise) ->
-      return @_imagesLoaded
+      return $.when(@_imagesLoaded, originalPromise)
 
     parse: (json) ->
       html = json.content
