@@ -4,16 +4,15 @@ define ['underscore', 'backbone', 'github'], (_, Backbone, Github) ->
 
   class GithubSession extends Backbone.Model
     initialize: () ->
-      # The session will be (re-)initialised when the app sets our login
-      # details, or if it is changed.
+      @_reloadClient()
+
       @on 'change', () =>
         # If any authentication info has changed then reload the client
         if not _.isEmpty _.pick @.changed, ['token', 'id', 'password']
           @_reloadClient()
 
-        # If any of the repo settings change then check if the user can still
-        # collaborate
-        else if not _.isEmpty _.pick @.changed, ['repoUser', 'repoName']
+        # If any of the repo settings change then check if the user can still collaborate
+        else if not _.isEmpty _.pick @.changed, ['repoUser', 'repoName', 'id', 'token', 'password']
           @checkCanCollaborate()
 
     authenticate: (config) ->
@@ -29,9 +28,8 @@ define ['underscore', 'backbone', 'github'], (_, Backbone, Github) ->
 
       promise = client.getLogin()
       promise.done () =>
-        @set config, {silent: true}
+        @set config
         @_client = client
-        @checkCanCollaborate()
       return promise
 
     _reloadClient: () ->
