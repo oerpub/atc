@@ -1,4 +1,4 @@
-{{#if hasRepo}}
+<div id="repo-buttons">
   {{#if canCollaborate}}
   <div class="btn-group">
     <button id="save-content" type="button" class="btn {{#if isDirty}}btn-primary{{else}}disabled{{/if}}" data-placement="bottom" data-toggle="tooltip" title="Save all changes in all content (books, chapters, sections)">
@@ -36,7 +36,7 @@
       <!-- dropdown menu links -->
     </ul>
   </div>
-{{/if}}
+</div>
 
 <!-- Sign in Modal -->
 <div id="sign-in-modal" data-backdrop="false" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="sign-in-modal-label" aria-hidden="true">
