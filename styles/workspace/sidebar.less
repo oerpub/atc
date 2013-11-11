@@ -125,6 +125,7 @@
 
     #menu-and-content {
       width: calc(~"100%" - @toc-width+@aside-handle-width+2); // +2 for borders on sidebars
+      width: -moz-calc(~"100%" - @toc-width+@aside-handle-width+2);
     }
 
     .sidebar-workspace {
@@ -154,6 +155,7 @@
 
     #menu-and-content {
       width: calc(~"100%" - @picker-width+@aside-handle-width+2); // +2 for borders on sidebars
+      width: -moz-calc(~"100%" - @picker-width+@aside-handle-width+2);
     }
 
     .sidebar-toc {
@@ -184,6 +186,7 @@
 
     #menu-and-content {
       width: calc(~"100%" - @aside-handle-width*2+2); // +2 for borders on sidebars
+      width: -moz-calc(~"100%" - @aside-handle-width*2+2);
     }
 
     .sidebar-workspace,
@@ -428,6 +431,7 @@ aside#sidebar > div { // TOC
   .boxed-group-inner {
     overflow: auto;
     height: calc(~"100% - 87px");
+    height: -moz-calc(~"100% - 87px");
     color: #666;
     font-size: 13px;
   }
