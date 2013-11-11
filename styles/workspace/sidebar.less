@@ -124,7 +124,7 @@
     min-width: (@workspace-min-width - @picker-width + @aside-handle-width);
 
     #menu-and-content {
-      width: calc(~"100%" - @toc-width+@aside-handle-width);
+      width: calc(~"100%" - @toc-width+@aside-handle-width+2); // +2 for borders on sidebars
     }
 
     .sidebar-workspace {
@@ -153,7 +153,7 @@
     min-width: (@workspace-min-width - @toc-width + @aside-handle-width);
 
     #menu-and-content {
-      width: calc(~"100%" - @picker-width+@aside-handle-width);
+      width: calc(~"100%" - @picker-width+@aside-handle-width+2); // +2 for borders on sidebars
     }
 
     .sidebar-toc {
@@ -183,7 +183,7 @@
     min-width: (@workspace-min-width - @toc-width - @picker-width + @aside-handle-width*2);
 
     #menu-and-content {
-      width: calc(~"100%" - @aside-handle-width*2);
+      width: calc(~"100%" - @aside-handle-width*2+2); // +2 for borders on sidebars
     }
 
     .sidebar-workspace,
