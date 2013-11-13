@@ -116,10 +116,17 @@ require.config
       exports: 'Select2'
 
     aloha:
-      deps: ['jquery', 'mathjax', 'cs!configs/aloha', 'bootstrapModal', 'bootstrapPopover']
+      deps: [
+        'jquery',
+        'mathjax',
+        'cs!configs/aloha',
+        'bootstrapModal',
+        'bootstrapPopover',
+        "css!#{BOWER}/aloha-editor/src/css/aloha.css"]
       exports: 'Aloha'
       init: () ->
         jQuery.browser.version = 10000 # Hack to fix aloha-editor's version checking
+        require(['less!styles/aloha-override.less']) # make sure this comes in after the aloha.css
         return Aloha
 
     mathjax:
