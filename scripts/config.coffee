@@ -1,8 +1,28 @@
 BOWER = '../bower_components' # The path to the downloaded bower components
 
+ATC = "#{BOWER}/atc"
+
 require.config
   # # Configure Library Locations
   paths:
+
+    aloha:        "#{ATC}/scripts/aloha"
+    app:          "#{ATC}/scripts/app"
+    collections:  "#{ATC}/scripts/collections"
+    configs:      "#{ATC}/scripts/configs"
+    controllers:  "#{ATC}/scripts/controllers"
+    helpers:      "#{ATC}/scripts/helpers"
+    mixins:       "#{ATC}/scripts/mixins"
+    models:       "#{ATC}/scripts/models"
+    nls:          "#{ATC}/scripts/nls"
+    routers:      "#{ATC}/scripts/routers"
+    session:      "#{ATC}/scripts/session"
+    views:        "#{ATC}/scripts/views"
+
+    # ## Template and Style paths
+    templates:    "#{ATC}/templates"
+    styles:       "#{ATC}/styles"
+
 
     # Change some of the models for the Application to use github and EPUB
     app: 'gh-book/app'
@@ -20,9 +40,6 @@ require.config
 
     mathjax: 'http://cdn.mathjax.org/mathjax/2.0-latest/MathJax.js?config=TeX-MML-AM_HTMLorMML-full&amp;delayStartupUntil=configured'
 
-    # ## Template and Style paths
-    templates: '../templates'
-    styles: '../styles'
 
     # ## Requirejs plugins
     text: "#{BOWER}/requirejs-text/text"
