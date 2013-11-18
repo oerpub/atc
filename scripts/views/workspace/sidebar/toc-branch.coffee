@@ -207,9 +207,17 @@ define [
       return if not confirm('Are you sure you want to delete this?')
 
       if @model.getParent()
+        model = @model.dereferencePointer?() or @model
+        parent = @model.getParent().dereferencePointer?() or @model.getParent()
+        root = @model.getRoot?()
+
         @model.getParent().removeChild(@model)
+
+        if model.get('_selected') or model.findDescendantBFS?((child) -> (child.dereferencePointer?() or child).get('_selected'))
+          controller.goEdit(parent.findDescendantDFS((model) -> return model.getChildren().isEmpty()), root)
       else
         # TODO - delete book (https://www.pivotaltracker.com/story/show/58351296)
+
 
     goEdit: () ->
       # Edit the model in the context of this folder/book. Explicitly close
