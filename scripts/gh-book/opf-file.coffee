@@ -166,7 +166,8 @@ define [
         #create empty module for the book
         module = new XhtmlFile {title: 'module1'}
         allContent.add(module)
-        @addChild(module)
+        @addChild(module) # for the nav file
+        @_addItem(module) # for this opf file
 
       clearTimeout(@_savingTimeout)
       @_savingTimeout = setTimeout (() =>
