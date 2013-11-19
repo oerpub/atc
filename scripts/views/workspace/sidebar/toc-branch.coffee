@@ -204,13 +204,8 @@ define [
 
     deleteModule: (e) ->
       e.preventDefault()
-
-      return if not confirm('Are you sure you want to delete this?')
-
-      if @model.getParent()
-        @model.getParent().removeChild(@model)
-      else
-        allContent.remove(@model).save()
+      
+      @model.removeMe() if @model.removeMe && confirm('Are you sure you want to delete this?')
 
     goEdit: () ->
       # Edit the model in the context of this folder/book. Explicitly close

@@ -414,6 +414,8 @@ define [
       @navModel.onReloaded = onReloaded
       @navModel.onSaved = onSaved
 
+    removeMe: ->
+      allContent.remove(@).save()
 
     newNode: (options) ->
       model = options.model
