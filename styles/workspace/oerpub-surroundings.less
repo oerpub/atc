@@ -78,6 +78,9 @@
   overflow: hidden;
   white-space: nowrap;
 }
+#repo-buttons {
+  display: none; // overidden below
+}
 #workspace-auth {
   display: block;
   width: 250px;
@@ -88,6 +91,11 @@
 
   .modal {
     text-align: left;
+  }
+  // Show repo buttons only if the view is rendered in the workspace-auth
+  // region
+  #repo-buttons {
+    display: block;
   }
 }
 
@@ -106,6 +114,8 @@
   .navbar-inner {
 
     // OERPUB Toolbar specific
+    padding-left: @content-lr-padding;
+    padding-right: @content-lr-padding;
 
     /* fallback */
     background-color: #D4D5D5;

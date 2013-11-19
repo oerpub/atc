@@ -4,15 +4,19 @@ define ['underscore', 'backbone', 'github'], (_, Backbone, Github) ->
 
   class GithubSession extends Backbone.Model
     initialize: () ->
-      @_reloadClient()
+      # The session will be (re-)initialised when the app sets our login
+      # details, or if it is changed.
+      @on 'change', (s, options) =>
+        # Internal signal not to reload. Used by authenticate below.
+        return if options?.noreload
 
-      @on 'change', () =>
         # If any authentication info has changed then reload the client
         if not _.isEmpty _.pick @.changed, ['token', 'id', 'password']
           @_reloadClient()
 
-        # If any of the repo settings change then check if the user can still collaborate
-        else if not _.isEmpty _.pick @.changed, ['repoUser', 'repoName', 'id', 'token', 'password']
+        # If any of the repo settings change then check if the user can still
+        # collaborate
+        else if not _.isEmpty _.pick @.changed, ['repoUser', 'repoName']
           @checkCanCollaborate()
 
     authenticate: (config) ->
@@ -28,8 +32,9 @@ define ['underscore', 'backbone', 'github'], (_, Backbone, Github) ->
 
       promise = client.getLogin()
       promise.done () =>
-        @set config
+        @set config, {noreload: true}
         @_client = client
+        @checkCanCollaborate()
       return promise
 
     _reloadClient: () ->
@@ -55,7 +60,11 @@ define ['underscore', 'backbone', 'github'], (_, Backbone, Github) ->
           @set('canCollaborate', canCollaborate)
 
     getClient: () ->
-      return @_client or throw 'BUG: Client was not loaded yet'
+      if not @_client
+        console?.warn('Using anonymous access for the GithUb API')
+        @_client = new Github({})
+        @set('canCollaborate', false)
+      return @_client 
 
     getRepo: () ->
       repoUser = @get('repoUser')

@@ -305,18 +305,21 @@ define [
         # When the controller navigates, ask our router to update the url.
         controller.on 'navigate', (route) -> router._navigate route
 
-        session.on 'change', () =>
-          if not _.isEmpty _.pick(session.changed, ['repoUser', 'repoName', 'branch'])
-            remoteUpdater.stop()
-            onFail(epubContainer.reload(), 'There was a problem re-loading the repo')
-            .done () ->
-              # Get the first book from the epub
-              opf = epubContainer.children.at(0)
-              if opf
-                opf.load().done () ->
-                  # When that book is loaded, edit it.
-                  model = opf.findDescendantDFS (model) -> model.getChildren().isEmpty()
-                  controller.goEdit model, opf
+        # The Welcome view fires a settings-changed event on it's model if
+        # the user changes the repo/branch.
+        session.on 'settings-changed', () ->
+          promise = onFail(epubContainer.reload(), 'There was a problem re-loading the repo')
+          .done () ->
+            # Get the first book from the epub
+            opf = epubContainer.children.at(0)
+            if opf
+              opf.load().done () ->
+                # When that book is loaded, edit it.
+                model = opf.findDescendantDFS (model) -> model.getChildren().isEmpty()
+                controller.goEdit model, opf
+
+          # Show the loading view while we load the new repo
+          App.main.show(new LoadingView {model:epubContainer, promise:promise})
 
         Backbone.history.start
           pushState: false

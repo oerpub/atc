@@ -1,4 +1,4 @@
-{{#if hasRepo}}
+<div id="repo-buttons">
   {{#if canCollaborate}}
   <div class="btn-group">
     <button id="save-content" type="button" class="btn {{#if isDirty}}btn-primary{{else}}disabled{{/if}}" data-placement="bottom" data-toggle="tooltip" title="Save all changes in all content (books, chapters, sections)">
@@ -36,7 +36,7 @@
       <!-- dropdown menu links -->
     </ul>
   </div>
-{{/if}}
+</div>
 
 <!-- Sign in Modal -->
 <div id="sign-in-modal" data-backdrop="false" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="sign-in-modal-label" aria-hidden="true">
@@ -46,7 +46,7 @@
   </div>
   <form class="modal-form" action="#" id="login-form">
   <div class="modal-body">
-    <p>To edit a book you must provide us with your
+    <p>To be able to save your changes, you must provide us with your
         <a href="http://github.com/">github</a> username and password.</p>
 
     <p>If you refresh this page you may need to re-enter this information.</p>
@@ -54,6 +54,7 @@
       <input id="github-id" class="input-small" type="text" required="true" placeholder="Username" value="{{id}}"/>
       <input id="github-password" type="password" required="true" class="input-small" placeholder="Password"/>
     </div>
+    <p id="login-anonymous"><a data-dismiss="modal">No thanks, I just want to demo the editor</a></p>
     <div id="login-advanced-wrapper">
       <a data-toggle="collapse" data-target="#login-advanced"
         class="login-advanced-toggle">Advanced login options</a>

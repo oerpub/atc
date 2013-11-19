@@ -34,10 +34,11 @@ define [
       return @_runningPromise
 
     stop: () ->
+      @keepUpdating = false
+      @_runningPromise and @_runningPromise.timeoutId and clearTimeout(@_runningPromise.timeoutId)
       promise = @_runningPromise or (new $.Deferred()).resolve(@)
 
       return promise.always () =>
-        @keepUpdating = false
         @lastSeenSha = null
 
 
@@ -91,7 +92,9 @@ define [
 
             return onceAll(commitsPromises).then () => @lastSeenSha = lastSeenSha
 
-      return @_runningPromise.then () =>
+      return @_runningPromise.always () =>
+        @_runningPromise and @_runningPromise.timeoutId and clearTimeout(@_runningPromise.timeoutId)
         @_runningPromise = false
-        setTimeout (() => @pollUpdates()), UPDATE_TIMEOUT if @keepUpdating
+      .then () =>
+        @_runningPromise.timeoutId = setTimeout (() => @pollUpdates()), UPDATE_TIMEOUT if @keepUpdating
 
