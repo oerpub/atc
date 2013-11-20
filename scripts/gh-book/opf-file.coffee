@@ -114,6 +114,11 @@ define [
       # save opf files on creation
       @_save() if @_isNew
 
+    # return null so `TocPointerNode.getRoot()` returns the OPF file instead of the EPUBContainer for new books
+    # HACK because when a new book is added to EPUBComtainer the parent is set.
+    # Then, in toc-branch, goEdit uses model.getRoot() to determine what to render in the sidebar
+    getParent: () -> null
+
     # Add an `<item>` to the OPF.
     # Called from `@manifest.add` and `@resolveSaveConflict`
     _addItem: (model, options={}, force=true) ->
