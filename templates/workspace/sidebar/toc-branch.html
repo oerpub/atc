@@ -11,9 +11,11 @@
 
 <div class="pull-right dropdown module-controls">
   {{#unless selected}} {{#unless childIsSelected}}
+  {{#if canRemove}}
   <a href="#" class="pull-right delete-module" title="Delete this {{prettyName}}">
     <i class="icon-remove"></i>
   </a>
+  {{/if}}
   {{/unless}} {{/unless}}
   <a href="#" class="pull-right edit-settings dropdown-toggle" data-toggle="dropdown" title="Edit/rename this {{prettyName}}">
     <i class="icon-pencil"></i>

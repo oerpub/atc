@@ -186,6 +186,7 @@ define [
         hasParent: !! @model.getParent?()
         hasChildren: !! @model.getChildren?()?.length
         isExpanded: @expanded
+        canRemove: !! @model.removeMe
         # Possibly delegate to the navModel for dirty bits
         _isDirty: modelOrNav.get('_isDirty')
         _hasRemoteChanges: modelOrNav.get('_hasRemoteChanges')
