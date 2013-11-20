@@ -91,6 +91,8 @@ define ['backbone'], (Backbone) ->
         root = parent
       return root
 
+    # Ask the parent to remove.
+    # TODO: If there is no parent then this will fail spectacularly!
     removeMe: ->
       @getParent().removeChild(@)
 
