@@ -414,6 +414,9 @@ define [
       @navModel.onReloaded = onReloaded
       @navModel.onSaved = onSaved
 
+    # Override the tree's removeMe (which just asks the parent to remove the child)
+    removeMe: ->
+      allContent.remove(@).save()
 
     newNode: (options) ->
       model = options.model
