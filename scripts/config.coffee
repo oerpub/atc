@@ -1,4 +1,5 @@
 BOWER = '../bower_components' # The path to the downloaded bower components
+MINIFIED_ALOHA = false # Set to true to use a minified build
 
 require.config
   # # Configure Library Locations
@@ -38,7 +39,9 @@ require.config
     marionette: "#{BOWER}/backbone.marionette/lib/backbone.marionette"
 
     # ## UI Libraries
-    aloha: "#{BOWER}/aloha-editor/src/lib/aloha"
+    aloha: (MINIFIED_ALOHA and
+        "#{BOWER}/aloha-editor/target/build-profile-with-oer/rjs-output/lib/aloha" or
+        "#{BOWER}/aloha-editor/src/lib/aloha")
     select2: "#{BOWER}/select2/select2"
     moment: "#{BOWER}/moment/moment"
     # Bootstrap Plugins
@@ -120,6 +123,8 @@ require.config
       exports: 'Aloha'
       init: () ->
         jQuery.browser.version = 10000 # Hack to fix aloha-editor's version checking
+        if MINIFIED_ALOHA
+          Aloha.require ["css!aloha.css"]
         return Aloha
 
     mathjax:
