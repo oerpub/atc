@@ -58,7 +58,6 @@ define [
 
     templateHelpers: () ->
       return {
-        hasRepo: !!@model.getRepo()
         isDirty: @isDirty
         isAuthenticated: !! (@model.get('password') or @model.get('token'))
       }

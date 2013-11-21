@@ -26,7 +26,7 @@ define [
     initialize: () ->
       @children = new Backbone.Collection()
 
-      @children.on 'add', (collection, options) =>
+      @children.on 'add remove', (collection, options) =>
         @_markDirty(options, true)
 
       @children.on 'reset', (collection, options) =>
@@ -79,6 +79,7 @@ define [
     reset: () -> @children.reset()
 
     addChild: (book) -> @children.add(book)
+    removeChild: (book) -> @children.remove(book)
 
   EpubContainer = EpubContainer.extend loadableMixin
   # All content in the Workspace
