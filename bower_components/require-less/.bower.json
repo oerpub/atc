@@ -1,0 +1,16 @@
+{
+  "name": "require-less",
+  "ignore": [
+    "example",
+    ".gitignore"
+  ],
+  "homepage": "https://github.com/guybedford/require-less",
+  "_release": "e6c7b9386b",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "e6c7b9386b3c5429021f71d96b42ce1a4ededfa1"
+  },
+  "_source": "git://github.com/guybedford/require-less.git",
+  "_target": "master"
+}
