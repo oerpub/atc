@@ -254,6 +254,7 @@ define [
             '':             'goDefault'
             'repo/:repoUser/:repoName(/branch/:branch)': 'goDefault'
             'repo/:repoUser/:repoName(/branch/:branch)/workspace': 'goWorkspace'
+            'repo/:repoUser/:repoName(/branch/:branch)/migrate(/:task)': 'goMigrate'
             'repo/:repoUser/:repoName(/branch/:branch)/edit/*id': 'goEdit' # Edit an existing piece of content (id can be a path)
 
           _loadFirst: (repoUser, repoName, branch) ->
@@ -281,6 +282,13 @@ define [
           goWorkspace: (repoUser, repoName, branch) ->
             @_loadFirst(repoUser, repoName, branch).done () =>
               controller.goWorkspace()
+
+          goMigrate: (repoUser, repoName, branch, task) ->
+            @_loadFirst(repoUser, repoName, branch).done () =>
+              require ['cs!gh-book/opf-file'], (OpfFile) ->
+                # Find the first opf file.
+                opf = allContent.findWhere({mediaType: OpfFile.prototype.mediaType})
+                controller.goMigrate(task, opf)
 
           goEdit: (repoUser, repoName, branch, id, contextModel=null)    ->
             @_loadFirst(repoUser, repoName, branch).done () =>

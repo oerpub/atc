@@ -7,6 +7,7 @@ define [
   return new class Router extends Marionette.AppRouter
     controller: appController
     appRoutes:
-      '':             'goWorkspace' # Show the workspace list of content
-      'workspace':    'goWorkspace'
-      'edit/*id':     'goEdit' # Edit an existing piece of content (id can be a URL-encoded path)
+      '':                'goWorkspace' # Show the workspace list of content
+      'workspace':       'goWorkspace'
+      'migrate(/:task)': 'goMigrate'
+      'edit/*id':        'goEdit' # Edit an existing piece of content (id can be a URL-encoded path)

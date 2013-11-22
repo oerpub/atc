@@ -25,7 +25,7 @@ define [
 
       # Make sure the menu is loaded
       # TODO: This can be removed if the "Home" button (and click event) are moved into this layout
-      @layout.menu.show(menuLayout) if not @layout.menu.currentView
+      @layout.menu.show(menuLayout) if menuLayout and not @layout.menu.currentView
 
     # There is a cyclic dependency between the controller and the ToC tree because
     # the user can click an item in the ToC to `goEdit`.
@@ -144,3 +144,31 @@ define [
 
             # Update the URL
             @trigger 'navigate', "edit/#{encodeURI(model.id or model.cid)}#{contextPath}"
+
+    # Show Migration view
+    # -------
+    goMigrate: (task, contextModel) ->
+      # To prevent cyclic dependencies, load the views once the app has loaded.
+      require [
+        'cs!views/migration/migration'
+        'cs!views/layouts/workspace/sidebar'
+        ], (MigrationView, SidebarView) =>
+
+        # Drop the menu, we can drop in our own later?
+        @_ensureLayout(null)
+        # Load the sidebar
+        allContent.load()
+        .fail(() => alert 'Problem loading workspace. Please refresh and try again')
+        .done () =>
+          @_showWorkspacePane(SidebarView)
+
+          if contextModel
+            contextView = new SidebarView
+              model: contextModel
+            @layout.sidebar.show(contextView)
+            contextView.maximize()
+
+          @layout.content.show(new MigrationView(task: task))
+
+          # Update the URL
+          @trigger 'navigate', task and "migrate/#{task}" or 'migrate'
