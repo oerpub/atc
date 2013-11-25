@@ -9,6 +9,7 @@ define [
   'cs!collections/media-types'
   'cs!gh-book/epub-container'
   'cs!gh-book/xhtml-file'
+  'cs!gh-book/gdoc-xhtml-file'
   'cs!gh-book/opf-file'
   'cs!gh-book/toc-node'
   'cs!gh-book/binary-file'
@@ -17,7 +18,7 @@ define [
   'cs!gh-book/loading'
   'cs!configs/github.coffee'
   'less!gh-book/gh-book'
-], ($, _, Backbone, Marionette, logger, session, allContent, mediaTypes, EpubContainer, XhtmlFile, OpfFile, TocNode, BinaryFile, WelcomeSignInView, remoteUpdater, LoadingView, config) ->
+], ($, _, Backbone, Marionette, logger, session, allContent, mediaTypes, EpubContainer, XhtmlFile, GoogleDocXhtmlFile, OpfFile, TocNode, BinaryFile, WelcomeSignInView, remoteUpdater, LoadingView, config) ->
 
   # Stop logging.
   logger.stop()
@@ -97,6 +98,7 @@ define [
     mediaTypes.add TocNode
     mediaTypes.add BinaryFile, {mediaType:'image/png'}
     mediaTypes.add BinaryFile, {mediaType:'image/jpeg'}
+    mediaTypes.add GoogleDocXhtmlFile, {mediaType:GoogleDocXhtmlFile::uniqueMediaType}
 
     # set which media formats are allowed 
     # at the toplevel of the content
