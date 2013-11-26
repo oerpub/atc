@@ -80,6 +80,7 @@ define [
     reset: () -> @getChildren().reset()
 
     addChild: (book) -> @getChildren().add(book)
+    removeChild: (book) -> @children.remove(book)
 
   EpubContainer = EpubContainer.extend loadableMixin
   EpubContainer = EpubContainer.extend treeMixin
