@@ -242,6 +242,8 @@ define [
       @_localTitlesChanged = {}
 
 
+    getRoot: () -> @
+
     newNode: (options) ->
       model = options.model
       node = @tocNodes.get model.id
