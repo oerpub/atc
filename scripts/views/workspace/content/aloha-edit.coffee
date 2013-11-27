@@ -94,4 +94,8 @@ define [
           # reenable everything
           @$el.removeClass('disabled')
 
+          # Focus the editor
+          alohaEditable = Aloha.getEditableById @$el.attr('id')
+          alohaEditable.activate()
+
       @initalRender.resolve()
