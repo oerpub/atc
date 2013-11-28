@@ -30,12 +30,9 @@ define ['jquery'], ($) ->
         # jquery-ui and bootstrap conflict in a few cases (buttons,
         # tooltip) our copy has those removed.
         jqueryui: '../../oerpub/js/jquery-ui-1.9.0.custom-aloha'
-        contenthandler: '../plugins/common/contenthandler/lib'
-        semanticblock: '../plugins/oer/semanticblock'
 
       map:
         '*':
-          'semanticblock/semanticblock-plugin': 'semanticblock/lib/semanticblock-plugin'
           'ui/ui': 'toolbar/toolbar-plugin'
 
       waitSeconds: 42
@@ -53,11 +50,13 @@ define ['jquery'], ($) ->
         'common/list'
         'oer/table'
         'extra/draganddropfiles'
-        'common/image'
         'oer/overlay'
         'oer/math'
+        'oer/mathcheatsheet'
         'oer/assorted'
         'ghbook/image'
+        'common/image'
+        'oer/semanticblock'
         'oer/note'
         'oer/example'
         'oer/exercise'

@@ -3,8 +3,9 @@ define [
   'marionette'
   'cs!controllers/routing'
   'cs!helpers/enable-dnd'
+  'cs!collections/content'
   'hbs!templates/workspace/sidebar/toc-branch'
-], ($, Marionette, controller, EnableDnD, tocBranchTemplate) ->
+], ($, Marionette, controller, EnableDnD, allContent, tocBranchTemplate) ->
 
   # This class introduces a `renderModelOnly()` method that will
   # re-render only the Model part of the CompositeView.
@@ -185,6 +186,7 @@ define [
         hasParent: !! @model.getParent?()
         hasChildren: !! @model.getChildren?()?.length
         isExpanded: @expanded
+        canRemove: !! @model.removeMe
         # Possibly delegate to the navModel for dirty bits
         _isDirty: modelOrNav.get('_isDirty')
         _hasRemoteChanges: modelOrNav.get('_hasRemoteChanges')
@@ -216,8 +218,7 @@ define [
         if model.get('_selected') or model.findDescendantBFS?((child) -> (child.dereferencePointer?() or child).get('_selected'))
           controller.goEdit(parent.findDescendantDFS((model) -> return model.getChildren().isEmpty()), root)
       else
-        # TODO - delete book (https://www.pivotaltracker.com/story/show/58351296)
-
+        @model.removeMe() if @model.removeMe && confirm('Are you sure you want to delete this?')
 
     goEdit: () ->
       # Edit the model in the context of this folder/book. Explicitly close
