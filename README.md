@@ -95,24 +95,24 @@ Then use npm to install all dependencies:
 #### Setting up a web server
 
 * The simplest way to get going, is to install the node package called
-   http-server:
+  http-server:
 
-       npm install -g http-server
+      npm install -g http-server
 
-   Then you can launch a web-server by typing:
+  Then you can launch a web-server by typing:
 
-       http-server
+      http-server
 
-   The application itself can then be found at http://localhost:8080/
+  The application itself can then be found at http://localhost:8080/
 
 
 * Another option is to install apache and symlink your development directory
-   into the default document root:
+  into the default document root:
 
-       sudo apt-get install apache2
-       sudo ln -s $HOME/github-bookeditor /var/www/github-bookeditor
+      sudo apt-get install apache2
+      sudo ln -s $HOME/github-bookeditor /var/www/github-bookeditor
 
-   The application can then be found at http://localhost/github-bookeditor/
+  The application can then be found at http://localhost/github-bookeditor/
 
 ## Developing on components in bower\_components.
 
@@ -133,7 +133,7 @@ like this:
 
     cd bower_components
     git clone git@github.com:oerpub/Aloha-Editor.git aloha-editor-dev
-    rm -rf aloha-editor && ln -s $HOME/aloha-editor-dev aloha-editor
+    rm -rf aloha-editor && ln -s aloha-editor-dev aloha-editor
 
 This will create a symlink in bower\_components that point to a real checkout
 in aloha-editor-dev, allowing you to do development in a familiar setting.
