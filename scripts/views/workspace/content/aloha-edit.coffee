@@ -98,4 +98,7 @@ define [
           alohaEditable = Aloha.getEditableById @$el.attr('id')
           alohaEditable.activate()
 
+          # Update what Aloha think's is the select range after focussing.
+          Aloha.Selection.updateSelection()
+
       @initalRender.resolve()
