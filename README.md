@@ -4,7 +4,8 @@ The book editor is a javascript browser application that allows editing an
 ebook in your browser and storing the ebook itself in a github repo.
 
 More information can be found in the
-[documentation](https://github.com/oerpub/documentation/) repository.
+[documentation](https://github.com/oerpub/documentation/) repository as well as
+in the [docs](docs) directory.
 
 ## Technologies used
 * [Backbone.js](http://backbonejs.org/)
@@ -119,7 +120,7 @@ Then use npm to install all dependencies:
 The github bookeditor depends on several [several components](
 https://github.com/oerpub/documentation/blob/gh-pages/README.md).
 These components can be found in the `bower_components` directory. Some of
-these are themselves checkouts from github, but unfortunately that are not
+these are themselves checkouts from github, but unfortunately these are not
 real clones, so direct development on these are not possible.
 
 To develop these products, you need to remove the existing checkout, and
