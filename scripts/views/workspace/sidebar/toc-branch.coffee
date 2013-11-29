@@ -210,11 +210,28 @@ define [
       if @model.removeMe
         model = @model.dereferencePointer?() or @model
         parent = @model.getParent()
-        parent = parent.dereferencePointer?() or parent
+        parent = parent?.dereferencePointer?() or parent
         root = @model.getRoot?()
         @model.removeMe()
-        if model.get('_selected') or model.findDescendantBFS?((child) -> (child.dereferencePointer?() or child).get('_selected'))
-          controller.goEdit(parent.findDescendantDFS((model) -> return model.getChildren().isEmpty()), root)
+
+        # If the model we're deleting is selected, or any child node inside it
+        # is selected, we need to open the nearest alternative node instead
+        if model.get('_selected') or
+            model.findDescendantBFS?((child) -> (child.dereferencePointer?() or child).get('_selected'))
+          # When deleting a book, we may not have a parent object to work with,
+          # but if we do, attempt to find a leaf-node in our parent and edit
+          # that
+          if parent and parent.findDescendantDFS
+            next = parent.findDescendantDFS((model) -> return model.getChildren().isEmpty())
+            if next
+              controller.goEdit(parent.findDescendantDFS((model) -> return model.getChildren().isEmpty()), root)
+              return
+
+          # Still here? Then we either have no parent or the parent has no
+          # leaf nodes. Just go find something and edit it.
+          # TODO: Don't show the workspace! Have to figure out how to find
+          # something in a generic fashion.
+          controller.goWorkspace()
 
     goEdit: () ->
       # Edit the model in the context of this folder/book. Explicitly close
