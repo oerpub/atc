@@ -27,7 +27,7 @@ define [
   onceAll = (promises) -> return $.when.apply($, promises)
 
   # Singleton that gets reloaded when the repo changes
-  epubContainer = new EpubContainer()
+  epubContainer = EpubContainer::instance()
 
   allContent.on 'add', (model, collection, options) ->
     return if options.loading
@@ -43,10 +43,6 @@ define [
         allContent.each (book) ->
           book.manifest?.add(model) # Only books have a manifest
 
-  allContent.on 'remove', (model, collection, options) ->
-    epubContainer.removeChild(model)
-
-
   # The WelcomeSignInView is overloaded to show Various Dialogs.
   #
   # - SignIn
@@ -54,8 +50,6 @@ define [
   #
   # When there is a failure show the Settings/SignIn Modal
   welcomeView = new WelcomeSignInView {model:session}
-
-
 
   # This is a utility that wraps a promise and alerts when the promise fails.
   onFail = (promise, message='There was a problem.') ->
