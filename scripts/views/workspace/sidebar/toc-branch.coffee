@@ -1,11 +1,12 @@
 define [
   'jquery'
   'marionette'
+  'cs!gh-book/opf-file'
   'cs!controllers/routing'
   'cs!helpers/enable-dnd'
   'cs!collections/content'
   'hbs!templates/workspace/sidebar/toc-branch'
-], ($, Marionette, controller, EnableDnD, allContent, tocBranchTemplate) ->
+], ($, Marionette, OpfFile, controller, EnableDnD, allContent, tocBranchTemplate) ->
 
   # This class introduces a `renderModelOnly()` method that will
   # re-render only the Model part of the CompositeView.
@@ -212,26 +213,23 @@ define [
         parent = @model.getParent()
         parent = parent?.dereferencePointer?() or parent
         root = @model.getRoot?()
+
         @model.removeMe()
 
         # If the model we're deleting is selected, or any child node inside it
         # is selected, we need to open the nearest alternative node instead
-        if model.get('_selected') or
-            model.findDescendantBFS?((child) -> (child.dereferencePointer?() or child).get('_selected'))
-          # When deleting a book, we may not have a parent object to work with,
-          # but if we do, attempt to find a leaf-node in our parent and edit
-          # that
-          if parent and parent.findDescendantDFS
-            next = parent.findDescendantDFS((model) -> return model.getChildren().isEmpty())
-            if next
-              controller.goEdit(parent.findDescendantDFS((model) -> return model.getChildren().isEmpty()), root)
-              return
+        if model.get('_selected') or model.findDescendantBFS?((child) -> (child.dereferencePointer?() or child).get('_selected'))
 
-          # Still here? Then we either have no parent or the parent has no
-          # leaf nodes. Just go find something and edit it.
-          # TODO: Don't show the workspace! Have to figure out how to find
-          # something in a generic fashion.
-          controller.goWorkspace()
+          if parent
+            # node has a parent, find the first child of the node and edit it. if the parent
+            # is now empty module pane will be emptied as well
+            next = parent.findDescendantDFS((model) -> return model.getChildren().isEmpty())
+            controller.goEdit(next, root)
+          else
+            # redirect to first book with no module selected, if there are no more books we
+            # go to the "workspace" 
+            firstBook = allContent.findWhere({mediaType: OpfFile::mediaType})
+            controller.goEdit(firstBook, firstBook)
 
     goEdit: () ->
       # Edit the model in the context of this folder/book. Explicitly close
