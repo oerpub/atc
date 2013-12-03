@@ -64,6 +64,9 @@ These are defined as `Backbone.Model` attributes that begin with `ui:`.
 - `ui:selected` **boolean**: this model is selected (currently showing in the content editor, or currently in the sidebar)
 - `ui:original` **JSON**: the most recently loaded JSON object
 
+When these are changed they **must** also set an option `uiChanged` and should **not** be changed along with non-UI attributes.
+This way views that only listen to propagated `Backbone.Collection' 'change` events can easily distinguish model changes from state changes (instead of having to do `model.changedAttributes().filter(...)`).
+
 # Events
 
 **Note:** when an event is caused by a remote update, the `{remote:true}` option will be sent along with the event
