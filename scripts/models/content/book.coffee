@@ -255,6 +255,8 @@ define [
 
 
     getRoot: () -> @
+    # Prevent the whole workspace from loading up in the book sidebar when a Module is clicked in the picker
+    getParent: () -> null
 
     newNode: (options) ->
       model = options.model
