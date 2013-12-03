@@ -421,7 +421,9 @@ define [
 
     # Override the tree's removeMe (which just asks the parent to remove the child)
     removeMe: ->
-      allContent.remove(@).save()
+      require ['cs!gh-book/epub-container'], (EpubContainer) =>
+        EpubContainer::instance().removeChild(@)
+        allContent.save()
 
     newNode: (options) ->
       model = options.model
