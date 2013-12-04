@@ -69,25 +69,19 @@
     </div>
     <p id="login-anonymous"><a data-dismiss="modalASDF" onclick='
     $(this).closest(".modal-body").html("<div>\
-      <p><b>What are bookshelves (repositories)?</b></p>\
-      <p>A bookshelf holds a single book or a set of related books that you want to edit at the same time and with the same co-authors. The books might share content; for instance a textbook student and teacher editions. A bookshelf is created as a repository in GitHub. </p>\
-      <p><a data-dismiss=modal>Start with the demo bookshelf</a> (oerpub / sf-demo-books)</p>\
-      <p><b>Your bookshelves:</b></p>\
+      <p><a data-toggle=collapse data-target=#what-are-bookshelves>What are these?</a></p>\
+      <p class=collapse id=what-are-bookshelves>A bookshelf holds a single book or a set of related books that you want to edit at the same time and with the same co-authors. The books might share content; for instance a textbook student and teacher editions. A bookshelf is created as a repository in GitHub. </p>\
+      <p><b>Go to a recently viewed shelf:</b></p>\
       <ul>\
         <li><a data-dismiss=modal>maxstarkenburg / sf-demo-books</a></li>\
-      </ul>\
-      <p><a data-toggle=collapse data-target=#new-bookshelf>+ make a new one</a></p>\
-      <p class=collapse id=new-bookshelf>Owner ID: <input type=text value=maxstarkenburg style=width:125px;margin:0> Bookshelf ID: <input type=text placeholder=github-repository-id style=width:125px;margin:0> <button type=submit class=btn>Continue</button></p>\
-      <p><b>Other recently viewed shelves:</b></p>\
-      <ul>\
         <li><a data-dismiss=modal>oerpub / sf-demo-books</a></li>\
         <li><a data-dismiss=modal>oerpub / epubjs-demo-book</a></li>\
         <li><a data-dismiss=modal>kathi-fletcher / ieb-physics</a></li>\
       </ul>\
-      <p><b>Or view another one:</b></p>\
+      <p><b>View another one:</b></p>\
       <p>Owner ID: <input type=text placeholder=github-user-id style=width:125px;margin:0> Bookshelf ID: <input type=text placeholder=github-repository-id style=width:125px;margin:0> </p>\
     </div>");
-    $("#sign-in-ok").text("Continue").appendTo(".modal-body p:last-child").css("vertical-align","middle");
+    $("#sign-in-ok").text("Go").appendTo(".modal-body p:last-child").css("vertical-align","middle");
     $("#sign-in-modal .modal-footer").hide();
     $("#sign-in-modal-label").text("Choose Bookshelf");
     '>No thanks, I just want to demo the editor</a></p>
