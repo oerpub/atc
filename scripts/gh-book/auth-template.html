@@ -68,8 +68,9 @@
       </div>
     </div>
     <p id="login-anonymous"><a data-dismiss="modalASDF" onclick='
-    $(this).closest(".modal-body").html("<div><p><a data-dismiss=modal>Start with the demo books</a></p><p>or</p><p style=margin:0>Owner ID: <input type=text placeholder=github-user-id style=width:150px></p><p style=margin:0>Bookshelf ID: <input type=text placeholder=github-repository-id style=width:150px></p></div>");
-    $("#sign-in-ok").text("Continue");
+    $(this).closest(".modal-body").html("<div><p><a data-dismiss=modal>Start with the demo books</a></p><p>or</p><p>Owner ID: <input type=text placeholder=github-user-id style=width:125px;margin:0> Bookshelf ID: <input type=text placeholder=github-repository-id style=width:125px;margin:0> </p></div>");
+    $("#sign-in-ok").text("Continue").appendTo(".modal-body p:last-child").css("vertical-align","middle");
+    $("#sign-in-modal .modal-footer").hide();
     $("#sign-in-modal-label").text("Choose Bookshelf");
     '>No thanks, I just want to demo the editor</a></p>
   </div>
