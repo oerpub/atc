@@ -15,6 +15,8 @@ define [
   'cs!gh-book/opf-file'
 ], (allContent, Saveable, loadableMixin, treeMixin, OpfFile) ->
 
+  instance = undefined
+
   class EpubContainer extends Saveable
     mediaType: 'application/epub+zip'
     accept: [OpfFile::mediaType]
@@ -84,5 +86,9 @@ define [
 
   EpubContainer = EpubContainer.extend loadableMixin
   EpubContainer = EpubContainer.extend treeMixin
+
+  EpubContainer::instance = () ->
+      return instance || instance = new EpubContainer()
+
   # All content in the Workspace
   return EpubContainer
