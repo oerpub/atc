@@ -39,7 +39,7 @@
 </div>
 
 <!-- Sign in Modal -->
-<div id="sign-in-modal" data-backdrop="false" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="sign-in-modal-label" aria-hidden="true" style="width: 750px; margin-left: -375px;">
+<div id="sign-in-modal" data-backdrop="false" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="sign-in-modal-label" aria-hidden="true">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
     <h3 id="sign-in-modal-label">Sign in to Book Editor</h3>
@@ -56,6 +56,7 @@
       <span id="login-advanced-trigger">
       (<a data-toggle="collapse" data-target="#login-advanced"
         class="login-advanced-toggle">or use advanced login with OAuth Token</a>)
+        <span style=color:orange>(Dev note: advanced/OAuth toggle has moved up here)</span>
       </span>
     </div>
     <div id="login-advanced-wrapper">
@@ -72,20 +73,27 @@
       <p><a data-toggle=collapse data-target=#what-are-bookshelves>What are bookshelves?</a></p>\
       <p class=collapse id=what-are-bookshelves>A bookshelf holds a single book or a set of related books that you want to edit at the same time and with the same co-authors. The books might share content; for instance a textbook student and teacher editions. A bookshelf is created as a repository in GitHub. </p>\
       <p><a data-dismiss=modal>Start with the demo bookshelf</a> (oerpub / sf-demo-books)</p>\
-      <p><b>Go to a recently viewed shelf:</b></p>\
+      <p><b>Go to a recently viewed shelf:</b> <span style=color:orange>(Dev note: this section nonexistent on first visit)</span></p>\
       <ul>\
         <li><a data-dismiss=modal>maxstarkenburg / sf-demo-books</a></li>\
         <li><a data-dismiss=modal>oerpub / sf-demo-books</a></li>\
         <li><a data-dismiss=modal>oerpub / epubjs-demo-book</a></li>\
         <li><a data-dismiss=modal>kathi-fletcher / ieb-physics</a></li>\
       </ul>\
-      <p><b>View another one:</b></p>\
+      <p><b>View or create another one:</b> <span style=color:orange>(Dev note: click Next to see create case)</span></p>\
       <p>Owner ID: <input type=text placeholder=github-user-id style=width:125px;margin:0> Bookshelf ID: <input type=text placeholder=github-repository-id style=width:125px;margin:0> </p>\
     </div>");
-    $("#sign-in-ok").text("Go").appendTo(".modal-body p:last-child").css("vertical-align","middle");
+    $("#sign-in-ok").text("Next").appendTo(".modal-body p:last-child").css("vertical-align","middle");
     $("#sign-in-modal .modal-footer").hide();
     $("#sign-in-modal-label").text("Choose Bookshelf");
-    '>No thanks, I just want to demo the editor</a></p>
+    $("#sign-in-ok").click(function(){
+      $("#sign-in-ok").attr("disabled","disabled");
+      $("#sign-in-modal .modal-body").append("<p id=confirm-new>This bookshelf does not exist. Create it? <button type=submit class=btn>Yes, Create New Shelf</button> <button type=submit class=btn>Cancel</button></p><p><span style=color:orange>(Dev note: nonexistent Owner ID is different error (alert is fine))</span><br><span style=color:orange>(Dev note: note that Next button is disabled)</span></p>"); 
+      return false;
+    });
+    '>No thanks, I just want to demo the editor</a> 
+    <span style=color:orange>(Dev note: click here to see step 2, but step 2 should be present whether clicking this link or signing in)</span>
+    </p>
   </div>
   <div class="modal-footer">
     <button id="sign-in-ok" type="submit" class="btn btn-primary">Sign In</button>
