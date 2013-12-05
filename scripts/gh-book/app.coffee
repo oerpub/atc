@@ -285,10 +285,30 @@ define [
 
           goMigrate: (repoUser, repoName, branch, task) ->
             @_loadFirst(repoUser, repoName, branch).done () =>
-              require ['cs!gh-book/opf-file'], (OpfFile) ->
+              require ['cs!views/migration/migration', 'cs!views/layouts/workspace/sidebar', 'cs!gh-book/opf-file'], (MigrationView, SidebarView, OpfFile) ->
                 # Find the first opf file.
                 opf = allContent.findWhere({mediaType: OpfFile.prototype.mediaType})
-                controller.goMigrate(task, opf)
+
+                # Drop the menu, we can drop in our own later?
+                controller._ensureLayout(null) # A little naughty?
+
+                # Load the sidebar
+                allContent.load()
+                .fail(() => alert 'Problem loading workspace. Please refresh and try again')
+                .done () =>
+                  controller._showWorkspacePane(SidebarView)
+
+                  if opf
+                    contextView = new SidebarView
+                      model: opf
+                    controller.layout.sidebar.show(contextView)
+                    contextView.maximize()
+
+                  controller.layout.content.show(new MigrationView(task: task))
+
+                  # Update the URL
+                  controller.trigger 'navigate', task and "migrate/#{task}" or 'migrate'
+
 
           goEdit: (repoUser, repoName, branch, id, contextModel=null)    ->
             @_loadFirst(repoUser, repoName, branch).done () =>

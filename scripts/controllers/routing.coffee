@@ -144,31 +144,3 @@ define [
 
             # Update the URL
             @trigger 'navigate', "edit/#{encodeURI(model.id or model.cid)}#{contextPath}"
-
-    # Show Migration view
-    # -------
-    goMigrate: (task, contextModel) ->
-      # To prevent cyclic dependencies, load the views once the app has loaded.
-      require [
-        'cs!views/migration/migration'
-        'cs!views/layouts/workspace/sidebar'
-        ], (MigrationView, SidebarView) =>
-
-        # Drop the menu, we can drop in our own later?
-        @_ensureLayout(null)
-        # Load the sidebar
-        allContent.load()
-        .fail(() => alert 'Problem loading workspace. Please refresh and try again')
-        .done () =>
-          @_showWorkspacePane(SidebarView)
-
-          if contextModel
-            contextView = new SidebarView
-              model: contextModel
-            @layout.sidebar.show(contextView)
-            contextView.maximize()
-
-          @layout.content.show(new MigrationView(task: task))
-
-          # Update the URL
-          @trigger 'navigate', task and "migrate/#{task}" or 'migrate'
