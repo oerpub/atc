@@ -285,7 +285,7 @@ define [
 
           goMigrate: (repoUser, repoName, branch, task) ->
             @_loadFirst(repoUser, repoName, branch).done () =>
-              require ['cs!views/migration/migration', 'cs!views/layouts/workspace/sidebar', 'cs!gh-book/opf-file'], (MigrationView, SidebarView, OpfFile) ->
+              require ['cs!gh-book/migration', 'cs!views/layouts/workspace/sidebar', 'cs!gh-book/opf-file'], (MigrationView, SidebarView, OpfFile) ->
                 # Find the first opf file.
                 opf = allContent.findWhere({mediaType: OpfFile.prototype.mediaType})
 

@@ -1,7 +1,7 @@
 define [
   'marionette'
   'cs!collections/content'
-  'hbs!templates/layouts/migration'
+  'hbs!gh-book/migration-template'
 ], (Marionette, allContent, migrationTemplate) ->
 
   return class Migration extends Marionette.ItemView
