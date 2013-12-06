@@ -133,6 +133,8 @@ define [
                 @layout.sidebar.show(modelView)
                 modelView.maximize()
 
+            @layout.content.reset()
+
             model.contentView((view) => if view then @layout.content.show(view)) if model.contentView
 
             # Load the menu's toolbar
