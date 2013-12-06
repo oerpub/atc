@@ -31,7 +31,10 @@ define [
             # of model passed to it. This allows us to write tasks that
             # migrate any type of content.
             require ["cs!migrations/#{@task}"], (f) ->
-              allContent.forEach (model) ->
+              migrateModels = (queue) ->
+                return if not queue.length
+                model = queue.shift()
+
                 # migrate the module. Pull in the requested task and pass
                 # the module to it.
                 $line = $("<p>Migrating #{model.id} ... <span> </span></p>")
@@ -46,6 +49,11 @@ define [
                   resolve('success')
                 .fail () ->
                   resolve('fail')
+                .always () ->
+                  migrateModels(queue)
+
+              # Start the migration
+              migrateModels(allContent.slice())
         else
           $loadingText.html("Invalid migration task")
       else
