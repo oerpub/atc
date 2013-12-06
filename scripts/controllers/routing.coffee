@@ -27,7 +27,7 @@ define [
 
       # Make sure the menu is loaded
       # TODO: This can be removed if the "Home" button (and click event) are moved into this layout
-      @layout.menu.show(menuLayout) if not @layout.menu.currentView
+      @layout.menu.show(menuLayout) if menuLayout and not @layout.menu.currentView
 
     # There is a cyclic dependency between the controller and the ToC tree because
     # the user can click an item in the ToC to `goEdit`.
