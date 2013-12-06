@@ -321,8 +321,6 @@ aside > div {
     li > .editor-node-body:not(:hover) > div.module-controls > a { display: none; }
     li > .editor-node-body:hover       > div.module-controls > a { display: inline-block; }
 
-    li.active > div > div.module-controls > .delete-module { display: none; }
-
     li > .editor-node-body > div.open > .module-controls > a {
         display: inline-block;
     }
@@ -338,6 +336,9 @@ aside > div {
   }
 
 }
+
+// Workspace Picker should not have a title so hide it
+aside#workspace #workspace-sidebar-toc > h4 { display: none; }
 
 // Feed each panel's width to the <ol> mixin below
 aside#workspace > div { // Picker

@@ -15,6 +15,8 @@ define [
   'cs!gh-book/opf-file'
 ], (allContent, Saveable, loadableMixin, treeMixin, OpfFile) ->
 
+  instance = undefined
+
   class EpubContainer extends Saveable
     mediaType: 'application/epub+zip'
     accept: [OpfFile::mediaType]
@@ -23,21 +25,23 @@ define [
       urlRoot: ''
     id: 'META-INF/container.xml'
 
-    initialize: () ->
-      @children = new Backbone.Collection()
 
-      @children.on 'add remove', (collection, options) =>
+    initialize: () ->
+
+      @_initializeTreeHandlers({root:@})
+
+      @getChildren().on 'add remove', (collection, options) =>
         @_markDirty(options, true)
 
-      @children.on 'reset', (collection, options) =>
+      @getChildren().on 'reset', (collection, options) =>
         return if options.loading
 
-        allContent.reset(@children.models)
+        allContent.reset(@getChildren().models)
 
     # Extend the `load()` to wait until all content is loaded
     _loadComplex: (fetchPromise) ->
       return fetchPromise.then () =>
-        contentPromises = @children.map (model) => model.load()
+        contentPromises = @getChildren().map (model) => model.load()
         # Return a new promise that finishes once all the contentPromises have loaded
         return $.when.apply($, contentPromises)
 
@@ -58,14 +62,14 @@ define [
           allContent.add(model, {loading:true})
         ret.push model
 
-      return @children.reset(ret, {loading:true})
+      return @getChildren().reset(ret, {loading:true})
 
     serialize: () ->
       return if not @$xml
 
       rootfiles = @$xml.find('rootfiles').empty()
 
-      @children.each (child) ->
+      @getChildren().each (child) ->
         jQuery('<rootfile/>')
           .attr('media-type', child.mediaType)
           .attr('full-path', child.id)
@@ -76,11 +80,16 @@ define [
       serializer.serializeToString(@$xml.get(0))
 
     # Called by `loadableMixin.reload` when the repo settings change
-    reset: () -> @children.reset()
+    reset: () -> @getChildren().reset()
 
-    addChild: (book) -> @children.add(book)
+    addChild: (book) -> @getChildren().add(book)
     removeChild: (book) -> @children.remove(book)
 
   EpubContainer = EpubContainer.extend loadableMixin
+  EpubContainer = EpubContainer.extend treeMixin
+
+  EpubContainer::instance = () ->
+      return instance || instance = new EpubContainer()
+
   # All content in the Workspace
   return EpubContainer
