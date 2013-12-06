@@ -27,7 +27,7 @@ define [
   onceAll = (promises) -> return $.when.apply($, promises)
 
   # Singleton that gets reloaded when the repo changes
-  epubContainer = new EpubContainer()
+  epubContainer = EpubContainer::instance()
 
   allContent.on 'add', (model, collection, options) ->
     return if options.loading
@@ -43,10 +43,6 @@ define [
         allContent.each (book) ->
           book.manifest?.add(model) # Only books have a manifest
 
-  allContent.on 'remove', (model, collection, options) ->
-    epubContainer.removeChild(model)
-
-
   # The WelcomeSignInView is overloaded to show Various Dialogs.
   #
   # - SignIn
@@ -54,8 +50,6 @@ define [
   #
   # When there is a failure show the Settings/SignIn Modal
   welcomeView = new WelcomeSignInView {model:session}
-
-
 
   # This is a utility that wraps a promise and alerts when the promise fails.
   onFail = (promise, message='There was a problem.') ->
@@ -98,7 +92,7 @@ define [
     mediaTypes.add BinaryFile, {mediaType:'image/png'}
     mediaTypes.add BinaryFile, {mediaType:'image/jpeg'}
 
-    # set which media formats are allowed 
+    # set which media formats are allowed
     # at the toplevel of the content
     for type in EpubContainer::accept
       mediaTypes.type(type)::toplevel = true
@@ -235,6 +229,8 @@ define [
         # Tell the controller which region to put all the views/layouts in
         controller.main = App.main
 
+        controller.setRootNode(epubContainer)
+
         # Custom routes to configure the Github User and Repo from the browser
         router = new class GithubRouter extends Backbone.Router
 
@@ -311,7 +307,7 @@ define [
           promise = onFail(epubContainer.reload(), 'There was a problem re-loading the repo')
           .done () ->
             # Get the first book from the epub
-            opf = epubContainer.children.at(0)
+            opf = epubContainer.getChildren().at(0)
             if opf
               opf.load().done () ->
                 # When that book is loaded, edit it.
