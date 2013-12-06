@@ -1,8 +1,9 @@
 define [
+  'jquery'
   'marionette'
   'cs!collections/content'
   'hbs!gh-book/migration-template'
-], (Marionette, allContent, migrationTemplate) ->
+], ($, Marionette, allContent, migrationTemplate) ->
 
   return class Migration extends Marionette.ItemView
     template: migrationTemplate
@@ -15,6 +16,7 @@ define [
       @$el.parents('.content-panel').first().find('#editor-title-text').hide()
       $loadingBar = @$el.find('#loading-bar')
       $loadingText = @$el.find('#loading-text')
+      $log = @$el.find('#migrationlog')
 
       if @task
         $loadingText.html("Running migration for #{@task}")
@@ -32,12 +34,18 @@ define [
               allContent.forEach (model) ->
                 # migrate the module. Pull in the requested task and pass
                 # the module to it.
+                $line = $("<p>Migrating #{model.id} ... <span> </span></p>")
+                $log.append($line)
+                resolve = (cls) -> @find('span').addClass(cls)
+                resolve = resolve.bind($line)
+
                 f(model).done () ->
                   migrated++
                   percentage = 100 * migrated / total
                   $loadingBar.attr('style', "width: #{percentage}%;")
+                  resolve('success')
                 .fail () ->
-                  $loadingText.text('There was a problem migrating the book.')
+                  resolve('fail')
         else
           $loadingText.html("Invalid migration task")
       else
