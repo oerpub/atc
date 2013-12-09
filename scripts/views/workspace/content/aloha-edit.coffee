@@ -17,7 +17,7 @@ define [
     initialize: () ->
       @isLoaded = @model.isNew()
 
-      @initalRender = new $.Deferred()
+      @initialRender = new $.Deferred()
       @contentLoaded = new $.Deferred()
       @modelLoaded = @model.load()
 
@@ -42,7 +42,7 @@ define [
         @contentLoaded.resolve() if @model.get(@modelKey)?.length
 
       # this is the trigger for actually showing content and enabling editing
-      $.when(@modelLoaded, @contentLoaded, @initalRender).done =>
+      $.when(@modelLoaded, @contentLoaded, @initialRender).done =>
         @isLoaded = true
         @render()
 
@@ -101,4 +101,4 @@ define [
           # Update what Aloha think's is the select range after focussing.
           Aloha.Selection.updateSelection()
 
-      @initalRender.resolve()
+      @initialRender.resolve()
