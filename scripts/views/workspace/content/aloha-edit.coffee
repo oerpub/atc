@@ -20,6 +20,13 @@ define [
       @initialRender = new $.Deferred()
       @contentLoaded = new $.Deferred()
       @modelLoaded = @model.load()
+      @editorLoaded = new $.Deferred()
+
+      # When editor is finally created, resolve a promise. This is the same as
+      # Aloha.unbind, but avoids race condition.
+      $(Aloha, 'body').off('aloha-editable-created.aloha-edit')
+      .on 'aloha-editable-created.aloha-edit',  (evt, editable) =>
+        @editorLoaded.resolve() if editable.obj.is('.aloha-root-editable')
 
       @listenTo @model, "change:#{@modelKey}", (model, value, options) =>
         return if options.internalAlohaUpdate
@@ -89,12 +96,5 @@ define [
 
           # reenable everything
           @$el.removeClass('disabled')
-
-          # Focus the editor
-          alohaEditable = Aloha.getEditableById @$el.attr('id')
-          alohaEditable.activate()
-
-          # Update what Aloha think's is the select range after focussing.
-          Aloha.Selection.updateSelection()
-
-      @initialRender.resolve()
+      else
+        @initialRender.resolve()
