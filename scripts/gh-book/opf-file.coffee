@@ -324,7 +324,10 @@ define [
       # For the structure of the TOC file see `OPF_TEMPLATE`
       bookId = @$xml.find("##{@$xml.get 'unique-identifier'}").text()
 
-      title = @$xml.find('title').text()
+      # Explicitly use querySelectorAll, because firefox fails to find the
+      # title if you just use jQuery.find().
+      titles = @$xml[0].querySelectorAll('title')
+      title = titles.length and $(titles[0]).text() or ''
 
       # The manifest contains all the items in the spine
       # but the spine element says which order they are in
