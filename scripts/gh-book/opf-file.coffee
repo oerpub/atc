@@ -136,6 +136,7 @@ define [
         href:         relPath
         id:           relPath # TODO: escape the slashes so it is a valid id
         'media-type': model.mediaType
+        properties:  "mathml scripted"
 
       if options.properties
         $item.attr 'properties', options.properties
