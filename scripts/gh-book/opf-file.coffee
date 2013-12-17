@@ -343,9 +343,21 @@ define [
       return model.trigger 'error', 'INVALID_OPF' if not @$xml[0]
 
       # For the structure of the TOC file see `OPF_TEMPLATE`
-      bookId = @$xml.find("##{@$xml.get 'unique-identifier'}").text()
+      # An epub must contain an IDREF to the dublincore element that has the
+      # identification information. The `identifer` fallback is there to handle
+      # books created while a misspelling was in place.
+      IdAttr = @$xml[0].firstChild.getAttribute('unique-identifier') or
+        @$xml[0].firstChild.getAttribute('unique-identifer')
 
-      title = @$xml.find('title').text()
+      # Use querySelectorAll (because firefox breaks with jquery) to find the
+      # value of the referenced unique identifier.
+      bookIds = @$xml[0].querySelectorAll("##{IdAttr}")
+      bookId = bookIds.length and $(bookIds[0]).text() or ''
+
+      # Explicitly use querySelectorAll, because firefox fails to find the
+      # title if you just use jQuery.find().
+      titles = @$xml[0].querySelectorAll('title')
+      title = titles.length and $(titles[0]).text() or ''
 
       # The manifest contains all the items in the spine
       # but the spine element says which order they are in
