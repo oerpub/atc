@@ -105,8 +105,20 @@
       A bookshelf holds a single book or a set of related books that you want to edit at the same time and with the same co-authors. The books might share content; for instance a textbook student and teacher editions. A bookshelf is created as a repository in GitHub.
     </p>
 
-    <p><a href="" data-default-repo>Start with the demo bookshelf</a> ({{defaultRepo.repoUser}} / {{defaultRepo.repoName}})</p>
+    <p>
+      <a href="" data-select-repo='{"repoUser":"{{defaultRepo.repoUser}}","repoName":"{{defaultRepo.repoName}}"}'>
+        Start with the demo bookshelf
+      </a> 
+      ({{defaultRepo.repoUser}} / {{defaultRepo.repoName}})
+    </p>
 
+    <h5>Go to a recently viewed shelf:</h5>
+
+    {{#each repoHistory}}
+      <li><a href="" data-select-repo='{"repoUser":"{{this.repoUser}}","repoName":"{{this.repoName}}"}'>{{this.repoUser}} / {{this.repoName}}</a></li>
+    {{/each}}
+
+    <h5>View another shelf:</h5>
     <form id="edit-repo-form" action="#" class="form-inline" style="padding: 0; margin: 0;">
       <label for="repo-user">Owner ID: </label>
       <input id="repo-user" class="input-small" required="true" type="text" placeholder="github user id" value="{{repoUser}}"/>

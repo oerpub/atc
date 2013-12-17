@@ -4,6 +4,7 @@ define ['underscore', 'backbone', 'github'], (_, Backbone, Github) ->
 
   class GithubSession extends Backbone.Model
     initialize: () ->
+
       # The session will be (re-)initialised when the app sets our login
       # details, or if it is changed.
       @on 'change', (s, options) =>
@@ -64,12 +65,40 @@ define ['underscore', 'backbone', 'github'], (_, Backbone, Github) ->
         console?.warn('Using anonymous access for the GithUb API')
         @_client = new Github({})
         @set('canCollaborate', false)
-      return @_client 
+      return @_client
 
     getRepo: () ->
       repoUser = @get('repoUser')
       repoName = @get('repoName')
       @getClient().getRepo(repoUser, repoName) if repoUser and repoName
+
+    getHistory: ->
+      history = JSON.parse(localStorage.oerRepoHistory)
+      history = [] if not history?.length
+
+      history
+
+    writeHistory: (user, name, branch) ->
+      history = JSON.parse(localStorage.oerRepoHistory)
+      history = [] if not history?.length
+      filteredHistory = []
+      
+      _.forEach history, (item) ->
+        filteredHistory.push(item) if item.repoUser != user || item.repoName != name
+
+      filteredHistory.unshift({
+        repoUser: user
+        repoName: name
+        branch: branch
+      })
+ 
+      localStorage.oerRepoHistory = JSON.stringify(filteredHistory.slice(0,5))
+
+    setRepo: (user, name, branch) ->
+      @set('repoUser', user)
+      @set('repoName', name)
+      @set('branch', branch)
+      @writeHistory(user, name, branch)
 
     getBranch: () ->
       if @get 'branch'

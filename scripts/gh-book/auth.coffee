@@ -25,7 +25,7 @@ define [
       'click #show-diffs': 'showDiffsModal'
       'click #edit-repo': 'editRepoModal'
       'submit #edit-repo-form': 'editRepo'
-      'click [data-default-repo]': 'defaultRepo'
+      'click [data-select-repo]': 'selectRepo'
 
     initialize: () ->
       # When a model has changed (triggered `dirty`) update the Save button
@@ -61,6 +61,7 @@ define [
     templateHelpers: () ->
       return {
         defaultRepo: config.defaultRepo
+        repoHistory: @model.getHistory()
         isDirty: @isDirty
         isAuthenticated: !! (@model.get('password') or @model.get('token'))
       }
@@ -191,26 +192,33 @@ define [
       # Show the modal
       $modal.modal {show:true}
 
-    defaultRepo: (e) ->
+    selectRepo: (e) ->
+      # Prevent form submission
+      e.preventDefault()
 
-      # null these out in case they typed something
-      # before clicking the link
-      @$el.find('#repo-user').val('')
-      @$el.find('#repo-name').val('')
-      @editRepo(e)
+      data = $(e.target).data('selectRepo')
+
+      repoUser = data.repoUser
+      repoName = data.repoName
+
+      @_selectRepo(repoUser, repoName)
 
     # Edit the current repo settings
     editRepo: (e) ->
       # Prevent form submission
       e.preventDefault()
 
+      repoUser = @$el.find('#repo-user').val()
+      repoName = @$el.find('#repo-name').val()
+
+      @_selectRepo(repoUser, repoName)
+
+    _selectRepo: (repoUser, repoName) ->
       # Wait until the remoteUpdater has stopped so the settings object does not
       # switch mid-way while updating
       auth = @
       remoteUpdater.stop().always () ->
 
-        repoUser = auth.$el.find('#repo-user').val() || config.defaultRepo.repoUser
-        repoName = auth.$el.find('#repo-name').val() || config.defaultRepo.repoName
         branchName = '' # means default branch
 
         # First check validity of the new repo details. Do this by attempting
@@ -227,10 +235,7 @@ define [
           # there is a connection problem loading the workspace.
           auth.model.set {repoUser:'', repoName:'', branch:''}, {silent:true}
 
-          auth.model.set
-            repoUser: repoUser
-            repoName: repoName
-            branch: branchName
+          auth.model.setRepo repoUser, repoName, branchName
 
           remoteUpdater.start().done () =>
             auth.trigger 'close'
