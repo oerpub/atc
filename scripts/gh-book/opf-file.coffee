@@ -63,6 +63,9 @@ define [
           options.doNotReparse = true
           @navModel.set 'body', @_serializeNavModel(), options
 
+          # if we're updating the nav the spine also probably needs to be updated
+          @_buildSpine()
+
       @tocNodes.on 'add', (model, collection, options) =>
         if not options.doNotReparse
           # Keep track of local changes if there is a remote conflict
@@ -174,6 +177,7 @@ define [
         @addChild(module) # for the nav file
         @_addItem(module) # for this opf file
 
+
       clearTimeout(@_savingTimeout)
       @_savingTimeout = setTimeout (() =>
         allContent.save(@navModel, false, true) # include-resources, include-new-files
@@ -266,6 +270,23 @@ define [
       @getChildren().reset([], {doNotReparse:true})
       recBuildTree(@getChildren(), $root, @navModel.id)
 
+    _buildSpine: ->
+      
+      start = @serialize()
+      spine = @$xml.find('spine').empty()
+
+      update = (model) =>
+        if model.mediaType == XhtmlFile::mediaType
+          $('<itemref />')
+            .attr('idref', Utils.relativePath(@id, model.id))
+            .appendTo(spine)
+         
+        if model.getChildren?().first()
+          model.getChildren().forEach update
+      
+      @getChildren().forEach update
+
+      @_markDirty({}) if start != @serialize()
 
     _serializeNavModel: () ->
       $body = $(@navModel.get 'body')
