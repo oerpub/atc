@@ -25,7 +25,7 @@ define [
       'click #show-diffs': 'showDiffsModal'
       'click #edit-repo': 'editRepoModal'
       'submit #edit-repo-form': 'editRepo'
-      'click [data-default-repo]': 'editRepo'
+      'click [data-default-repo]': 'defaultRepo'
 
     initialize: () ->
       # When a model has changed (triggered `dirty`) update the Save button
@@ -191,6 +191,14 @@ define [
       # Show the modal
       $modal.modal {show:true}
 
+    defaultRepo: (e) ->
+
+      # null these out in case they typed something
+      # before clicking the link
+      @$el.find('#repo-user').val('')
+      @$el.find('#repo-name').val('')
+      @editRepo(e)
+
     # Edit the current repo settings
     editRepo: (e) ->
       # Prevent form submission
@@ -203,7 +211,7 @@ define [
 
         repoUser = auth.$el.find('#repo-user').val() || config.defaultRepo.repoUser
         repoName = auth.$el.find('#repo-name').val() || config.defaultRepo.repoName
-        branchName = auth.$el.find('#repo-branch').val() # '' means default branch
+        branchName = '' # means default branch
 
         # First check validity of the new repo details. Do this by attempting
         # to read META-INFO/container.xml, which should exist for all real
