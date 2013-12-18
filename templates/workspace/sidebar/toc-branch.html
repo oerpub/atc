@@ -10,13 +10,13 @@
 {{/if}}
 
 <div class="pull-right dropdown module-controls">
-  <a href="#" class="pull-right delete-module-DISABLED" title="Go edit this {{prettyName}}">
-    <i class="icon-remove mockup-toc-icons-goedit"></i>
-  </a>
-  <a href="#" class="pull-right edit-settings dropdown-toggle" data-toggle="dropdown" title="Rename/delete this {{prettyName}}">
+  <a href="#" class="pull-right edit-settings dropdown-toggle" data-toggle="dropdown" title="Options for this {{prettyName}}">
     <i class="icon-pencil mockup-toc-icons-renamedelete"></i>
   </a>
   <ul class="dropdown-menu">
+    <li>
+      <button type="button" class="btn btn-link edit-settings-goedit"><i class="icon-goedit"></i> Go edit this {{prettyName}}</button>
+    </li>
     <li>
       <button type="button" class="btn btn-link edit-settings-rename"><i class="icon-pencil"></i> Rename this {{prettyName}}</button>
     </li>
