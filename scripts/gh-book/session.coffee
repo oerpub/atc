@@ -1,9 +1,12 @@
 define ['underscore', 'backbone', 'github'], (_, Backbone, Github) ->
 
   ROOT_URL = undefined # 'http://localhost:3000'
+  
 
   class GithubSession extends Backbone.Model
     initialize: () ->
+
+      repoHistoryLength: 5
 
       # The session will be (re-)initialised when the app sets our login
       # details, or if it is changed.
@@ -81,23 +84,27 @@ define ['underscore', 'backbone', 'github'], (_, Backbone, Github) ->
     writeHistory: (user, name, branch) ->
       history = JSON.parse(localStorage.oerRepoHistory)
       history = [] if not history?.length
-      filteredHistory = []
       
-      _.forEach history, (item) ->
-        filteredHistory.push(item) if item.repoUser != user || item.repoName != name
+      history = _.filter history, (item) ->
+        item.repoUser != user || item.repoName != name
 
-      filteredHistory.unshift({
+      history.unshift({
         repoUser: user
         repoName: name
         branch: branch
       })
  
-      localStorage.oerRepoHistory = JSON.stringify(filteredHistory.slice(0,5))
+      localStorage.oerRepoHistory = JSON.stringify(
+        history.slice(0,@repoHistoryLength)
+      )
 
     setRepo: (user, name, branch) ->
-      @set('repoUser', user)
-      @set('repoName', name)
-      @set('branch', branch)
+
+      @set
+        'repoUser': user
+        'repoName': name
+        'branch': branch
+
       @writeHistory(user, name, branch)
 
     getBranch: () ->
