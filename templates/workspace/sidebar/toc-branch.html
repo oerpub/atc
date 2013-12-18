@@ -10,7 +10,6 @@
 {{/if}}
 
 <div class="pull-right dropdown module-controls">
-  {{#if isGroup}}
   <a href="#" class="pull-right delete-module-DISABLED" title="Go edit this {{prettyName}}">
     <i class="icon-remove mockup-toc-icons-goedit"></i>
   </a>
@@ -27,14 +26,6 @@
     </li>
     {{/if}}
   </ul>
-  {{else}}
-  <a href="#" class="pull-right delete-module" title="Delete this {{prettyName}}">
-    <i class="icon-remove mockup-toc-icons-delete"></i>
-  </a>
-  <a href="#" class="pull-right edit-settings dropdown-toggle" data-toggle="dropdown" title="Rename this {{prettyName}}">
-    <i class="icon-pencil mockup-toc-icons-rename"></i>
-  </a>
-  {{/if}}
 </div>
 {{#if editAction}}
   <span data-media-type="{{#if content}}{{content.mediaType}}{{else}}{{mediaType}}{{/if}}" data-content-id="{{id}}" data-content-title="{{content.title}}" class="edit-action"><i class="icon-content"></i>
