@@ -4,13 +4,10 @@ define [
   'cs!collections/media-types'
   'cs!views/workspace/menu/add'
   'cs!views/workspace/sidebar/toc'
-  'hbs!templates/layouts/workspace/sidebar'
   'filtered-collection'
-], ($, Marionette, mediaTypes, AddView, TocView, sidebarTemplate) ->
+], ($, Marionette, mediaTypes, AddView, TocView) ->
 
   return class Sidebar extends Marionette.Layout
-    template: sidebarTemplate
-
     initialize: (options) ->
       @filteredMediaTypes = new Backbone.FilteredCollection(null, {collection:mediaTypes})
       @collection = new Backbone.FilteredCollection(null, {collection:@model.getChildren()})
