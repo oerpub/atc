@@ -76,8 +76,11 @@ define ['underscore', 'backbone', 'github'], (_, Backbone, Github) ->
       @getClient().getRepo(repoUser, repoName) if repoUser and repoName
 
     getHistory: ->
-      history = JSON.parse(localStorage.oerRepoHistory)
-      history = [] if not history?.length
+      try
+        history = JSON.parse(localStorage.oerRepoHistory)
+        history = [] if not history?.length
+      catch err
+        history = []
 
       history
 
