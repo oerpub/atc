@@ -85,8 +85,7 @@ define ['underscore', 'backbone', 'github'], (_, Backbone, Github) ->
       history
 
     writeHistory: (user, name, branch) ->
-      history = JSON.parse(localStorage.oerRepoHistory)
-      history = [] if not history?.length
+      history = @getHistory()
       
       history = _.filter history, (item) ->
         item.repoUser != user || item.repoName != name
