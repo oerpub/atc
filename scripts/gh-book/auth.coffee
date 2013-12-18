@@ -227,6 +227,7 @@ define [
         repo = session.getClient().getRepo(repoUser, repoName)
         branch = branchName and repo.getBranch(branchName) or repo.getDefaultBranch()
         branch.read('META-INF/container.xml').fail () ->
+          auth.$el.find('[data-repo-missing]').show()
           auth.editRepoModal()
         .then () ->
           # Silently clear the settings first. This forces a reload even if
