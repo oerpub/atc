@@ -39,7 +39,7 @@ define [
                 # the module to it.
                 $line = $("<p>Migrating #{model.id} ... <span> </span></p>")
                 $log.append($line)
-                resolve = (cls) -> @find('span').addClass(cls)
+                resolve = (cls) -> @addClass(cls)
                 resolve = resolve.bind($line)
 
                 f(model).done () ->
