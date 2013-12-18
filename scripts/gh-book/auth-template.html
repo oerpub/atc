@@ -112,11 +112,13 @@
       ({{defaultRepo.repoUser}} / {{defaultRepo.repoName}})
     </p>
 
-    <h5>Go to a recently viewed shelf:</h5>
+    {{#if repoHistory}}
+      <h5>Go to a recently viewed shelf:</h5>
 
-    {{#each repoHistory}}
-      <li><a href="" data-select-repo='{"repoUser":"{{this.repoUser}}","repoName":"{{this.repoName}}"}'>{{this.repoUser}} / {{this.repoName}}</a></li>
-    {{/each}}
+      {{#each repoHistory}}
+        <li><a href="" data-select-repo='{"repoUser":"{{this.repoUser}}","repoName":"{{this.repoName}}"}'>{{this.repoUser}} / {{this.repoName}}</a></li>
+      {{/each}}
+    {{/if}}
 
     <h5>View another shelf:</h5>
     <form id="edit-repo-form" action="#" class="form-inline" style="padding: 0; margin: 0;">
