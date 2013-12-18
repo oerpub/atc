@@ -7,7 +7,7 @@ define [
   'hbs!gh-book/auth-template'
   'difflib'
   'diffview'
-  'cs!configs/github.coffee'
+  'cs!configs/github'
   'bootstrapModal'
   'bootstrapCollapse'
 ], ($, Marionette, allContent, session, remoteUpdater, authTemplate, difflib, diffview, config) ->
