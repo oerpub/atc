@@ -16,6 +16,7 @@ define ['jquery', 'gh-book/xhtml-file'], ($, XhtmlFile) ->
 
           doc = parser.parseFromString(html, 'text/xml')
           $body = $(doc)
+          $body.find('body *[xmlns="http://www.w3.org/1999/xhtml"]').removeAttr('xmlns')
 
           # DOMParser does not properly throw an exception, but at least chrome
           # and firefox adds a parsererror element to the page.
