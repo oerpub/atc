@@ -1,12 +1,13 @@
 define [
   'jquery'
+  'underscore'
   'marionette'
   'cs!gh-book/opf-file'
   'cs!controllers/routing'
   'cs!helpers/enable-dnd'
   'cs!collections/content'
   'hbs!templates/workspace/sidebar/toc-branch'
-], ($, Marionette, OpfFile, controller, EnableDnD, allContent, tocBranchTemplate) ->
+], ($, _, Marionette, OpfFile, controller, EnableDnD, allContent, tocBranchTemplate) ->
 
   # This class introduces a `renderModelOnly()` method that will
   # re-render only the Model part of the CompositeView.
@@ -226,9 +227,13 @@ define [
             next = parent.findDescendantDFS((model) -> return model.getChildren().isEmpty())
             controller.goEdit(next, root)
           else
-            # redirect to first book with no module selected, if there are no more books we
-            # go to the "workspace" 
-            firstBook = allContent.findWhere({mediaType: OpfFile::mediaType})
+            # redirect to first book. The .without() is necessary because
+            # OpfFile::removeMe requires EpubContainer on the fly and this
+            # causes the delete operation to be async, which means at this
+            # point in the code the book might not be deleted yet, which breaks
+            # things when you delete the first book.
+            firstBook = _.findWhere allContent.without(this.model),
+              mediaType: OpfFile.prototype.mediaType
             controller.goEdit(firstBook, firstBook)
 
     goEdit: () ->

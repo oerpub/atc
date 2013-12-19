@@ -71,7 +71,7 @@ define [
       # Show the WelcomeView's settings modal if there was a connection problem
       try
         App.main.show(welcomeView)
-        welcomeView.editSettingsModal(message)
+        welcomeView.editRepoModal(message)
       catch err
         alert("#{message} Are you pointing to a valid book? Using github/#{repoUser}/#{repoName}#{branch}")
 
@@ -350,23 +350,27 @@ define [
           hashChange: true
           root: ''
 
-
+    App.main.show(welcomeView)
 
     # If localStorage does not contain a password or OAuth token then show the SignIn modal.
     # Otherwise, load the workspace
     if session.get('password') or session.get('token')
-      # Use the default book if one is not already set
       if not session.get 'repoName'
-        session.set config.defaultRepo
-      startRouting()
+        welcomeView.once 'close', () =>
+          startRouting()
+        welcomeView.editRepoModal()
+      else
+        startRouting()
     else
       # The user has not logged in yet so pop up the modal
       welcomeView.once 'close', () =>
-        # Use the default book if one is not already set
-        if not session.get 'repoName'
-          session.set config.defaultRepo
-        startRouting()
-      App.main.show(welcomeView)
+        if session.get 'repoName'
+          startRouting()
+        else
+          welcomeView.once 'close', () =>
+            startRouting()
+          welcomeView.editRepoModal()
+
       welcomeView.signInModal()
 
   return App
