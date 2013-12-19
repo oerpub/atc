@@ -39,16 +39,18 @@ define [
                 # the module to it.
                 $line = $("<p>Migrating #{model.id} ... <span> </span></p>")
                 $log.append($line)
-                resolve = (cls) -> @find('span').addClass(cls)
-                resolve = resolve.bind($line)
-
-                f(model).done () ->
+                resolve = (cls) ->
                   migrated++
                   percentage = 100 * migrated / total
                   $loadingBar.attr('style', "width: #{percentage}%;")
+                  @addClass(cls)
+                resolve = resolve.bind($line)
+
+                f(model).done () ->
                   resolve('success')
                 .fail () ->
                   resolve('fail')
+                  $loadingBar.addClass('bar-danger')
                 .always () ->
                   migrateModels(queue)
 
