@@ -27,7 +27,7 @@ define [
   onceAll = (promises) -> return $.when.apply($, promises)
 
   # Singleton that gets reloaded when the repo changes
-  epubContainer = new EpubContainer::instance()
+  epubContainer = EpubContainer::instance()
 
   allContent.on 'add', (model, collection, options) ->
     return if options.loading
@@ -50,8 +50,6 @@ define [
   #
   # When there is a failure show the Settings/SignIn Modal
   welcomeView = new WelcomeSignInView {model:session}
-
-
 
   # This is a utility that wraps a promise and alerts when the promise fails.
   onFail = (promise, message='There was a problem.') ->
@@ -252,6 +250,7 @@ define [
             '':             'goDefault'
             'repo/:repoUser/:repoName(/branch/:branch)': 'goDefault'
             'repo/:repoUser/:repoName(/branch/:branch)/workspace': 'goWorkspace'
+            'repo/:repoUser/:repoName(/branch/:branch)/migrate(/:task)': 'goMigrate'
             'repo/:repoUser/:repoName(/branch/:branch)/edit/*id': 'goEdit' # Edit an existing piece of content (id can be a path)
 
           _loadFirst: (repoUser, repoName, branch) ->
@@ -279,6 +278,33 @@ define [
           goWorkspace: (repoUser, repoName, branch) ->
             @_loadFirst(repoUser, repoName, branch).done () =>
               controller.goWorkspace()
+
+          goMigrate: (repoUser, repoName, branch, task) ->
+            @_loadFirst(repoUser, repoName, branch).done () =>
+              require ['cs!gh-book/migration', 'cs!views/layouts/workspace/sidebar', 'cs!gh-book/opf-file'], (MigrationView, SidebarView, OpfFile) ->
+                # Find the first opf file.
+                opf = allContent.findWhere({mediaType: OpfFile.prototype.mediaType})
+
+                # Drop the menu, we can drop in our own later?
+                controller._ensureLayout(null) # A little naughty?
+
+                # Load the sidebar
+                allContent.load()
+                .fail(() => alert 'Problem loading workspace. Please refresh and try again')
+                .done () =>
+                  controller._showWorkspacePane(SidebarView)
+
+                  if opf
+                    contextView = new SidebarView
+                      model: opf
+                    controller.layout.sidebar.show(contextView)
+                    contextView.maximize()
+
+                  controller.layout.content.show(new MigrationView(task: task))
+
+                  # Update the URL
+                  controller.trigger 'navigate', task and "migrate/#{task}" or 'migrate'
+
 
           goEdit: (repoUser, repoName, branch, id, contextModel=null)    ->
             @_loadFirst(repoUser, repoName, branch).done () =>
