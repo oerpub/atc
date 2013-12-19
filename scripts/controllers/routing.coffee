@@ -73,8 +73,9 @@ define [
       # To prevent cyclic dependencies, load the views once the app has loaded.
       require [
         'cs!views/layouts/workspace/menu'
-        'cs!views/layouts/workspace/sidebar'
-        ], (menuLayout, SidebarView) =>
+        'cs!views/layouts/workspace/bookshelf'
+        'cs!views/layouts/workspace/table-of-contents'
+        ], (menuLayout, BookshelfView, TocView) =>
 
         @_ensureLayout(menuLayout)
 
@@ -110,7 +111,7 @@ define [
             @_currentContext?.set('_selected', true)
 
             # Always show the workspace pane
-            @_showWorkspacePane(SidebarView)
+            @_showWorkspacePane(BookshelfView)
 
             # set more granular file selected flags to be used in ToC
             @_currentModel.set('_selected', true) # Need to set it on the dereferenced pointer
@@ -119,7 +120,7 @@ define [
             if contextModel
               # Only change the view if there is nothing there or if the model differs
               if !@layout.sidebar.currentView or @layout.sidebar.currentView.model != contextModel
-                contextView = new SidebarView
+                contextView = new TocView
                   model: contextModel
 
                 @layout.sidebar.show(contextView)
@@ -128,7 +129,7 @@ define [
             else if model.getChildren
               # Only change the view if there is nothing there or if the model differs
               if !@layout.sidebar.currentView or @layout.sidebar.currentView.model != model
-                modelView = new SidebarView
+                modelView = new TocView
                   model: model
                 @layout.sidebar.show(modelView)
                 modelView.maximize()
