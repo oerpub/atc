@@ -636,6 +636,22 @@ aside#sidebar > div { // TOC
 
 
   #workspace-sidebar-toc {
+  
+    .editor-content-title {
+      cursor: default;
+      &:after {
+        content: "\f040";
+        font-size: 13px;
+        font-family: FontAwesome;
+        padding-left: .4em;
+        font-weight: normal;
+        visibility: hidden;
+      }
+      &:hover:after {
+        visibility: visible;
+      }
+    }
+    
     // Root nodes in the sidebar should have no left margin
     > ol {
       margin: 10px 0 0;
