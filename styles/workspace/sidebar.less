@@ -639,16 +639,11 @@ aside#sidebar > div { // TOC
   
     .editor-content-title {
       cursor: default;
-      &:after {
-        content: "\f040";
+      .icon-pencil {
         font-size: 13px;
-        font-family: FontAwesome;
-        padding-left: .4em;
-        font-weight: normal;
-        visibility: hidden;
       }
-      &:hover:after {
-        visibility: visible;
+      &:not(:hover) .icon-pencil{
+        visibility: hidden;
       }
     }
     
