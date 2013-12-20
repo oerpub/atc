@@ -25,6 +25,7 @@ define [
       urlRoot: ''
     id: 'META-INF/container.xml'
 
+
     initialize: () ->
 
       @_initializeTreeHandlers({root:@})

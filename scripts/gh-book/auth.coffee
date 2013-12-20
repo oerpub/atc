@@ -138,6 +138,8 @@ define [
         @model.getRepo()?.fork().done () =>
           @model.set 'repoUser', login
 
+    
+
     signIn: (e) ->
       # Prevent form submission
       e.preventDefault()

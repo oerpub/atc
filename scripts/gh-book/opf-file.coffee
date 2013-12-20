@@ -178,6 +178,7 @@ define [
         @addChild(module) # for the nav file
         @_addItem(module) # for this opf file
 
+
       clearTimeout(@_savingTimeout)
       @_savingTimeout = setTimeout (() =>
         allContent.save(@navModel, false, true) # include-resources, include-new-files
