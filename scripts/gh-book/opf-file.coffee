@@ -63,6 +63,9 @@ define [
           options.doNotReparse = true
           @navModel.set 'body', @_serializeNavModel(), options
 
+          # if we're updating the nav the spine also probably needs to be updated
+          @_buildSpine()
+
       @tocNodes.on 'add', (model, collection, options) =>
         if not options.doNotReparse
           # Keep track of local changes if there is a remote conflict
@@ -136,6 +139,7 @@ define [
         href:         relPath
         id:           relPath # TODO: escape the slashes so it is a valid id
         'media-type': model.mediaType
+        properties:  "mathml scripted"
 
       if options.properties
         $item.attr 'properties', options.properties
@@ -173,6 +177,7 @@ define [
         allContent.add(module)
         @addChild(module) # for the nav file
         @_addItem(module) # for this opf file
+
 
       clearTimeout(@_savingTimeout)
       @_savingTimeout = setTimeout (() =>
@@ -266,6 +271,23 @@ define [
       @getChildren().reset([], {doNotReparse:true})
       recBuildTree(@getChildren(), $root, @navModel.id)
 
+    _buildSpine: ->
+      
+      start = @serialize()
+      spine = @$xml.find('spine').empty()
+
+      update = (model) =>
+        if model.mediaType == XhtmlFile::mediaType
+          $('<itemref />')
+            .attr('idref', Utils.relativePath(@id, model.id))
+            .appendTo(spine)
+         
+        if model.getChildren?().first()
+          model.getChildren().forEach update
+      
+      @getChildren().forEach update
+
+      @_markDirty({}) if start != @serialize()
 
     _serializeNavModel: () ->
       $body = $(@navModel.get 'body')
@@ -322,9 +344,21 @@ define [
       return model.trigger 'error', 'INVALID_OPF' if not @$xml[0]
 
       # For the structure of the TOC file see `OPF_TEMPLATE`
-      bookId = @$xml.find("##{@$xml.get 'unique-identifier'}").text()
+      # An epub must contain an IDREF to the dublincore element that has the
+      # identification information. The `identifer` fallback is there to handle
+      # books created while a misspelling was in place.
+      IdAttr = @$xml[0].firstChild.getAttribute('unique-identifier') or
+        @$xml[0].firstChild.getAttribute('unique-identifer')
 
-      title = @$xml.find('title').text()
+      # Use querySelectorAll (because firefox breaks with jquery) to find the
+      # value of the referenced unique identifier.
+      bookIds = @$xml[0].querySelectorAll("##{IdAttr}")
+      bookId = bookIds.length and $(bookIds[0]).text() or ''
+
+      # Explicitly use querySelectorAll, because firefox fails to find the
+      # title if you just use jQuery.find().
+      titles = @$xml[0].querySelectorAll('title')
+      title = titles.length and $(titles[0]).text() or ''
 
       # The manifest contains all the items in the spine
       # but the spine element says which order they are in

@@ -7,9 +7,10 @@ define [
   'hbs!gh-book/auth-template'
   'difflib'
   'diffview'
+  'cs!configs/github'
   'bootstrapModal'
   'bootstrapCollapse'
-], ($, Marionette, allContent, session, remoteUpdater, authTemplate, difflib, diffview) ->
+], ($, Marionette, allContent, session, remoteUpdater, authTemplate, difflib, diffview, config) ->
 
   return class GithubAuthView extends Marionette.ItemView
     template: authTemplate
@@ -20,10 +21,11 @@ define [
       'click #sign-out': 'signOut'
       'click #save-content': 'saveContent'
       'click #fork-content': 'forkContent'
-      'click #edit-settings': 'editSettingsModal'
-      'click #edit-settings-ok': 'editSettings'
       'submit #login-form': 'signIn'
       'click #show-diffs': 'showDiffsModal'
+      'click #edit-repo': 'editRepoModal'
+      'submit #edit-repo-form': 'editRepo'
+      'click [data-select-repo]': 'selectRepo'
 
     initialize: () ->
       # When a model has changed (triggered `dirty`) update the Save button
@@ -58,6 +60,8 @@ define [
 
     templateHelpers: () ->
       return {
+        defaultRepo: config.defaultRepo
+        repoHistory: @model.getHistory()
         isDirty: @isDirty
         isAuthenticated: !! (@model.get('password') or @model.get('token'))
       }
@@ -134,6 +138,8 @@ define [
         @model.getRepo()?.fork().done () =>
           @model.set 'repoUser', login
 
+    
+
     signIn: (e) ->
       # Prevent form submission
       e.preventDefault()
@@ -180,23 +186,40 @@ define [
 
 
     # Show the "Edit Settings" modal
-    editSettingsModal: () ->
-      $modal = @$el.find('#edit-settings-modal')
+    editRepoModal: () ->
+      $modal = @$el.find('#edit-repo-modal')
 
       # Show the modal
       $modal.modal {show:true}
 
-    # Edit the current repo settings
-    editSettings: () ->
+    selectRepo: (e) ->
+      # Prevent form submission
+      e.preventDefault()
 
+      data = $(e.target).data('selectRepo')
+
+      repoUser = data.repoUser
+      repoName = data.repoName
+
+      @_selectRepo(repoUser, repoName)
+
+    # Edit the current repo settings
+    editRepo: (e) ->
+      # Prevent form submission
+      e.preventDefault()
+
+      repoUser = @$el.find('#repo-user').val()
+      repoName = @$el.find('#repo-name').val()
+
+      @_selectRepo(repoUser, repoName)
+
+    _selectRepo: (repoUser, repoName) ->
       # Wait until the remoteUpdater has stopped so the settings object does not
       # switch mid-way while updating
       auth = @
       remoteUpdater.stop().always () ->
 
-        repoUser = auth.$el.find('#repo-user').val()
-        repoName = auth.$el.find('#repo-name').val()
-        branchName = auth.$el.find('#repo-branch').val() # '' means default branch
+        branchName = '' # means default branch
 
         # First check validity of the new repo details. Do this by attempting
         # to read META-INFO/container.xml, which should exist for all real
@@ -204,7 +227,8 @@ define [
         repo = session.getClient().getRepo(repoUser, repoName)
         branch = branchName and repo.getBranch(branchName) or repo.getDefaultBranch()
         branch.read('META-INF/container.xml').fail () ->
-          auth.editSettingsModal()
+          auth.$el.find('[data-repo-missing]').show()
+          auth.editRepoModal()
         .then () ->
           # Silently clear the settings first. This forces a reload even if
           # the user leaves the settings unchanged.  The reason for
@@ -212,10 +236,8 @@ define [
           # there is a connection problem loading the workspace.
           auth.model.set {repoUser:'', repoName:'', branch:''}, {silent:true}
 
-          auth.model.set
-            repoUser: repoUser
-            repoName: repoName
-            branch: branchName
+          auth.model.setRepo repoUser, repoName, branchName
 
           remoteUpdater.start().done () =>
+            auth.trigger 'close'
             auth.model.trigger 'settings-changed'
