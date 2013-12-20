@@ -81,11 +81,11 @@ define [
     # Called by `loadableMixin.reload` when the repo settings change
     reset: () -> @getChildren().reset()
 
-    addChild: (book) -> @getChildren().add(book)
-    removeChild: (book) -> @getChildren().remove(book)
-
   EpubContainer = EpubContainer.extend loadableMixin
   EpubContainer = EpubContainer.extend treeMixin
+
+  EpubContainer::addChild = (book) -> @getChildren().add(book)
+  EpubContainer::removeChild = (book) -> @getChildren().remove(book)
 
   EpubContainer::instance = () ->
       return instance || instance = new EpubContainer()
