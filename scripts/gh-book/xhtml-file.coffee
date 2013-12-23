@@ -98,7 +98,7 @@ define [
             '<html><body>' + value + '</body></html>')
         $html = $(doc)
 
-        $error = $html.find('parsererrors')
+        $error = $html.find('parsererror')
         $images = $html.find('body img[src^="data:"]:not([data-src])')
 
         # "1. When the body text is changed" (see above)
