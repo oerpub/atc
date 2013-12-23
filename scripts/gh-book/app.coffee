@@ -281,7 +281,7 @@ define [
 
           goMigrate: (repoUser, repoName, branch, task) ->
             @_loadFirst(repoUser, repoName, branch).done () =>
-              require ['cs!gh-book/migration', 'cs!views/layouts/workspace/sidebar', 'cs!gh-book/opf-file'], (MigrationView, SidebarView, OpfFile) ->
+              require ['cs!gh-book/migration', 'cs!views/layouts/workspace/table-of-contents', 'cs!gh-book/opf-file'], (MigrationView, TocView, OpfFile) ->
                 # Find the first opf file.
                 opf = allContent.findWhere({mediaType: OpfFile.prototype.mediaType})
 
@@ -292,10 +292,10 @@ define [
                 allContent.load()
                 .fail(() => alert 'Problem loading workspace. Please refresh and try again')
                 .done () =>
-                  controller._showWorkspacePane(SidebarView)
+                  controller._showWorkspacePane(TocView)
 
                   if opf
-                    contextView = new SidebarView
+                    contextView = new TocView
                       model: opf
                     controller.layout.sidebar.show(contextView)
                     contextView.maximize()
