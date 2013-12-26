@@ -47,14 +47,16 @@ define [
                   if tt
                     @find('span').popover
                       html: true
-                      title: 'Error'
+                      title: 'Status'
                       content: tt
                       placement: 'right'
                       trigger: 'hover'
                 resolve = resolve.bind($line)
 
-                f(model).done () ->
-                  resolve('success')
+                f(model).done (msg) ->
+                  c = 'success'
+                  c += ' ' + msg if msg
+                  resolve(c, msg)
                 .fail (err) ->
                   resolve('fail', err)
                   $loadingBar.addClass('bar-danger')

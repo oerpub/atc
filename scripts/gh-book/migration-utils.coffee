@@ -32,10 +32,10 @@ define ['jquery', 'gh-book/xhtml-file'], ($, XhtmlFile) ->
             model.set
                 body: serializer.serializeToString(doc)
 
-          promise.resolve()
+          promise.resolve("completed")
         .fail () ->
           promise.reject()
       else
         # Not an xhtml module, We're done.
-        promise.resolve()
+        promise.resolve("skipped")
       return promise
