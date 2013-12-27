@@ -234,8 +234,8 @@ define [
 
 
     serialize: ->
-      head = @get 'head'
-      body = @get 'body'
+      head = @get('head') or ''
+      body = @get('body') or ''
 
       xml = """
         <?xml version="1.0" encoding="UTF-8"?>
