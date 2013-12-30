@@ -23,7 +23,6 @@ define [
       'click #fork-content': 'forkContent'
       'submit #login-form': 'signIn'
       'click #show-diffs': 'showDiffsModal'
-      'click #edit-repo': 'editRepoModal'
       'submit #edit-repo-form': 'editRepo'
       'click [data-select-repo]': 'selectRepo'
 
@@ -184,13 +183,6 @@ define [
         @isDirty = false
         @render()
 
-
-    # Show the "Edit Settings" modal
-    editRepoModal: () ->
-      $modal = @$el.find('#edit-repo-modal')
-
-      # Show the modal
-      $modal.modal {show:true}
 
     selectRepo: (e) ->
       # Prevent form submission
