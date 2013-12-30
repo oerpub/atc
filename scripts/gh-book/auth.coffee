@@ -195,6 +195,13 @@ define [
 
       @_selectRepo(repoUser, repoName)
 
+    # Show the "Edit Settings" modal
+    editRepoModal: () ->
+      $modal = @$el.find('#edit-repo-modal')
+
+      # Show the modal
+      $modal.modal {show:true}
+
     # Edit the current repo settings
     editRepo: (e) ->
       # Prevent form submission
