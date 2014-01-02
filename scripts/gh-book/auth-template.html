@@ -34,8 +34,8 @@
       {{else}}
         <li><a href="" id="sign-in">Sign In</a></li>
       {{/if}}
-      <li><a href="" id="edit-repo">Change Repository</a></li>
       <!-- dropdown menu links -->
+      <li><a href="#edit-repo-modal" data-toggle="modal">Other Bookshelves</a></li>
     </ul>
   </div>
 </div>
@@ -99,7 +99,7 @@
 <div id="edit-repo-modal" data-backdrop="false" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="edit-repo-modal-label" aria-hidden="true">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="edit-repo-modal-label">Choose Bookshelf</h3>
+    <h3 id="edit-repo-modal-label">Other Bookshelves</h3>
   </div>
   <div class="modal-body">
     <a href="" data-toggle=collapse data-target=#what-are-bookshelves>What are bookshelves?</a>
@@ -107,18 +107,27 @@
       A bookshelf holds a single book or a set of related books that you want to edit at the same time and with the same co-authors. The books might share content; for instance a textbook student and teacher editions. A bookshelf is created as a repository in GitHub.
     </p>
 
-    <p>
-      <a href="" data-select-repo='{"repoUser":"{{defaultRepo.repoUser}}","repoName":"{{defaultRepo.repoName}}"}'>
-        Start with the demo bookshelf
-      </a> 
-      ({{defaultRepo.repoUser}} / {{defaultRepo.repoName}})
-    </p>
+    {{#unless repoName}}
+      <p>
+        <a href="" data-select-repo='{"repoUser":"{{defaultRepo.repoUser}}","repoName":"{{defaultRepo.repoName}}"}'>
+          Start with the demo bookshelf
+        </a> 
+        ({{defaultRepo.repoUser}} / {{defaultRepo.repoName}})
+      </p>
+    {{/unless}}
 
     {{#if repoHistory}}
       <h5>Go to a recently viewed shelf:</h5>
 
       {{#each repoHistory}}
-        <li><a href="" data-select-repo='{"repoUser":"{{this.repoUser}}","repoName":"{{this.repoName}}"}'>{{this.repoUser}} / {{this.repoName}}</a></li>
+
+        {{#if this.current}}
+          <li><strong>{{this.repoUser}} / {{this.repoName}}</strong> (current)</li>
+        {{/if}}
+        {{#unless this.current}}
+          <li><a href="" data-select-repo='{"repoUser":"{{this.repoUser}}","repoName":"{{this.repoName}}"}'>{{this.repoUser}} / {{this.repoName}}</a></li>
+        {{/unless}}
+
       {{/each}}
     {{/if}}
 

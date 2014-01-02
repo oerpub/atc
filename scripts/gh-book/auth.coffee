@@ -23,7 +23,6 @@ define [
       'click #fork-content': 'forkContent'
       'submit #login-form': 'signIn'
       'click #show-diffs': 'showDiffsModal'
-      'click #edit-repo': 'editRepoModal'
       'submit #edit-repo-form': 'editRepo'
       'click [data-select-repo]': 'selectRepo'
 
@@ -59,9 +58,14 @@ define [
       @isDirty = allContent.some (model) -> model.isDirty()
 
     templateHelpers: () ->
+      history = @model.getHistory()
+
+      for repo in history
+        repo.current = repo.repoName == @model.get('repoName') && repo.repoUser == @model.get('repoUser')
+
       return {
         defaultRepo: config.defaultRepo
-        repoHistory: @model.getHistory()
+        repoHistory: history
         isDirty: @isDirty
         isAuthenticated: !! (@model.get('password') or @model.get('token'))
       }
@@ -185,13 +189,6 @@ define [
         @render()
 
 
-    # Show the "Edit Settings" modal
-    editRepoModal: () ->
-      $modal = @$el.find('#edit-repo-modal')
-
-      # Show the modal
-      $modal.modal {show:true}
-
     selectRepo: (e) ->
       # Prevent form submission
       e.preventDefault()
@@ -202,6 +199,13 @@ define [
       repoName = data.repoName
 
       @_selectRepo(repoUser, repoName)
+
+    # Show the "Edit Settings" modal
+    editRepoModal: () ->
+      $modal = @$el.find('#edit-repo-modal')
+
+      # Show the modal
+      $modal.modal {show:true}
 
     # Edit the current repo settings
     editRepo: (e) ->
