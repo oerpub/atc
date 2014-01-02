@@ -105,9 +105,16 @@ define [
 
       e.preventDefault()
 
+      # open external urls in a new tab
       if external.test(href)
         if not defaultPrevented
           window.open(href, '_blank')
+
+      # do nothing for javascript toggles
+      else if $(@).attr('data-toggle')
+        return
+
+      # navagate the app
       else
         if href then Backbone.history.navigate(href, {trigger: true})
 
@@ -361,7 +368,6 @@ define [
         welcomeView.editRepoModal()
       else
         startRouting()
-
     else
       # The user has not logged in yet so pop up the modal
       welcomeView.once 'close', () =>

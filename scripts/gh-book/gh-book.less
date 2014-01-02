@@ -187,14 +187,18 @@ nav#workspace-sidebar-toc{
 }
 
 .migration-container {
-  .success,.fail {
+  p.success span, p.fail span {
     font-family: FontAwesome;
     font-size: 14px;
   }
-  .success:before {
-    content:  "\f046";
+  p.success {
+    span:before {
+      content:  "\f046";
+    }
   }
-  .fail:before {
-    content:  "\f096";
+  p.fail {
+    span:before {
+      content:  "\f096";
+    }
   }
 }
