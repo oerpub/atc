@@ -41,7 +41,7 @@
 .go-edit{
   cursor: pointer;
 }
-[data-media-type="application/xhtml+xml"]:hover .btn-link {
+[data-media-type="application/xhtml+xml"]:hover > span > .btn-link {
   color: @linkColorHover;
   text-decoration: underline;
 }
@@ -91,6 +91,14 @@ html, body {
         color: @panel-heading-color;
         font-size: @panel-heading-size;
         #module-title-indicator{ font-weight: normal; }
+        #edit-metadata { 
+          font-weight: normal;
+          color: @module-color-light !important;
+          a {
+            color: @module-color-light !important;
+            text-decoration: underline;
+          }
+        }
       }
 
     }
