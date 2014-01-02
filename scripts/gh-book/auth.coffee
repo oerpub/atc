@@ -58,9 +58,14 @@ define [
       @isDirty = allContent.some (model) -> model.isDirty()
 
     templateHelpers: () ->
+      history = @model.getHistory()
+
+      for repo in history
+        repo.current = repo.repoName == @model.get('repoName') && repo.repoUser == @model.get('repoUser')
+
       return {
         defaultRepo: config.defaultRepo
-        repoHistory: @model.getHistory()
+        repoHistory: history
         isDirty: @isDirty
         isAuthenticated: !! (@model.get('password') or @model.get('token'))
       }
