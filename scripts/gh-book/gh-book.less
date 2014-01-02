@@ -177,14 +177,25 @@ nav#workspace-sidebar-toc{
 }
 
 .migration-container {
-  .success,.fail {
+  p.success span, p.fail span {
     font-family: FontAwesome;
     font-size: 14px;
   }
-  .success:before {
-    content:  "\f046";
+  p.success {
+    span:before {
+      content:  "\f046";
+    }
+    &.completed {
+      background-color: #DEFF99;
+    }
+    &.skipped {
+      background-color: #FFFFDD;
+    }
   }
-  .fail:before {
-    content:  "\f096";
+  p.fail {
+    background-color: #EEA6A6;
+    span:before {
+      content:  "\f096";
+    }
   }
 }

@@ -39,16 +39,27 @@ define [
                 # the module to it.
                 $line = $("<p>Migrating #{model.id} ... <span> </span></p>")
                 $log.append($line)
-                resolve = (cls) -> @find('span').addClass(cls)
-                resolve = resolve.bind($line)
-
-                f(model).done () ->
+                resolve = (cls, tt) ->
                   migrated++
                   percentage = 100 * migrated / total
                   $loadingBar.attr('style', "width: #{percentage}%;")
-                  resolve('success')
-                .fail () ->
-                  resolve('fail')
+                  @addClass(cls)
+                  if tt
+                    @find('span').popover
+                      html: true
+                      title: 'Status'
+                      content: tt
+                      placement: 'right'
+                      trigger: 'hover'
+                resolve = resolve.bind($line)
+
+                f(model).done (msg) ->
+                  c = 'success'
+                  c += ' ' + msg if msg
+                  resolve(c, msg)
+                .fail (err) ->
+                  resolve('fail', err)
+                  $loadingBar.addClass('bar-danger')
                 .always () ->
                   migrateModels(queue)
 
