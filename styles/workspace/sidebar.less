@@ -4,60 +4,6 @@
  * New Styles
  *****************************/
 
-.mockup-toc-icons-delete, .mockup-toc-icons-rename{
-  font-size: 14px;
-  width: 14px;
-  height: 14px;
-  display: block !important;
-  line-height: 14px;
-  text-align: center;
-  margin-top: 1px;
-}
-
-.mockup-toc-icons-goedit:before {
-  content: "\f0A9";
-  font-size: 9px;
-  color: #666;
-  content: "\f0da";
-  content: "\f061";
-  color: #fff;
-  background-color: #777;
-  background-color: #333;
-  width: 14px;
-  height: 14px;
-  border-radius: 7px;
-  display: block !important;
-  text-align: center;
-  line-height: 14px;
-  margin-top: 1px;
-}
-.mockup-toc-icons-renamedelete:before {
-  content: "\f078";
-  content: "\f13a";
-  content: "\f0d7";
-  content: "\f0c9";
-  content: "\f103";
-  content: "\f107";
-
-  font-size: 14px;
-  color: #fff;
-  background-color: #333;
-  font-weight: bold;
-  
-  width: 14px;
-  height: 14px;
-  border-radius: 7px;
-  display: block !important;
-  text-align: center;
-  line-height: 14px;
-  margin-top: 1px;
-}
-
-.workspace-sidebar nav div.dropdown:hover > ul.dropdown-menu {
-  display: block;
-  margin: 0;  
-}
- 
 .sidebar-container {
   // When .minimized, the bar is moved left (negative number) so it "appears" to slide left
   // Other sidebars may actually be to the left so clip to the left
@@ -372,7 +318,7 @@ aside > div {
       margin: 10px;
     }
 
-    li > .editor-node-body:not(:hover) > div.module-controls > a, h4:not(:hover) > div.module-controls > a { display: none; }
+    li > .editor-node-body:not(:hover) > div.module-controls > a { display: none; }
     li > .editor-node-body:hover       > div.module-controls > a { display: inline-block; }
 
     li > .editor-node-body > div.open > .module-controls > a {
@@ -396,10 +342,10 @@ aside#workspace #workspace-sidebar-toc > h4 { display: none; }
 
 // Feed each panel's width to the <ol> mixin below
 aside#workspace > div { // Picker
-  .x-indent-compensate-panel(@picker-width - 80);
+  .x-indent-compensate-panel(@picker-width - 70);
 }
 aside#sidebar > div { // TOC
-  .x-indent-compensate-panel(@toc-width - 80);
+  .x-indent-compensate-panel(@toc-width - 70);
 }
 // Feed the nesting level of each <ol> to the special padding/width mixin below
 .x-indent-compensate-panel(@cs){

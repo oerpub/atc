@@ -9,27 +9,22 @@
   <span class="editor-expand-collapse toggle-expand" title="Click to expand/collapse"><i class="icon-content"></i></span>
 {{/if}}
 
-<div class="module-controls">
-  <a href="#" class="pull-right delete-module-DISABLED" title="Go edit this {{prettyName}}">
-    <i class="icon-remove mockup-toc-icons-goedit"></i>
-  </a>
-</div>
 <div class="pull-right dropdown module-controls">
-  <a href="#" class="pull-right edit-settings dropdown-toggle" data-toggle="dropdown" title="Rename/delete this {{prettyName}}">
-    <i class="icon-pencil mockup-toc-icons-renamedelete"></i>
+  {{#if canRemove}}
+  <a href="#" class="pull-right delete-module" title="Delete this {{prettyName}}">
+    <i class="icon-remove"></i>
+  </a>
+  {{/if}}
+  <a href="#" class="pull-right edit-settings dropdown-toggle" data-toggle="dropdown" title="Edit/rename this {{prettyName}}">
+    <i class="icon-pencil"></i>
   </a>
   <ul class="dropdown-menu">
     <li>
-      <button type="button" class="btn btn-link edit-settings-rename"><i class="icon-pencil"></i> Rename this {{prettyName}}</button>
+      <button type="button" class="btn btn-link edit-settings-rename">Rename this {{prettyName}}</button>
     </li>
     <li>
-      <button type="button" class="btn btn-link edit-settings-metadata"><i class="icon-pencil"></i> Edit description/authors</button>
+      <button type="button" class="btn btn-link edit-settings-edit">Go edit this {{prettyName}}</button>
     </li>
-    {{#if canRemove}}
-    <li>
-      <button type="button" class="btn btn-link edit-settings-edit"><i class="icon-remove"></i> Delete this {{prettyName}}</button>
-    </li>
-    {{/if}}
   </ul>
 </div>
 {{#if editAction}}
