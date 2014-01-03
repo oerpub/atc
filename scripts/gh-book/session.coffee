@@ -1,12 +1,14 @@
-define ['underscore', 'backbone', 'github'], (_, Backbone, Github) ->
+define ['underscore', 'jquery', 'backbone', 'github'], (_, $, Backbone, Github) ->
 
   ROOT_URL = undefined # 'http://localhost:3000'
   
 
   class GithubSession extends Backbone.Model
-    initialize: () ->
 
-      repoHistoryLength: 5
+    loaded: new $.Deferred()
+    repoHistoryLength: 5
+
+    initialize: () ->
 
       # The session will be (re-)initialised when the app sets our login
       # details, or if it is changed.
@@ -39,6 +41,7 @@ define ['underscore', 'backbone', 'github'], (_, Backbone, Github) ->
         @set config, {noreload: true}
         @_client = client
         @checkCanCollaborate()
+
       return promise
 
     _reloadClient: () ->
@@ -57,11 +60,14 @@ define ['underscore', 'backbone', 'github'], (_, Backbone, Github) ->
       # Shortcut to false if no token or password is provided
       if not (@get('token') or @get('password'))
         @set('canCollaborate', false)
-
+        @loaded.resolve()
       else
+        @loaded.resolve() if not @getRepo()
+
         # See if this user can collaborate
         @getRepo()?.canCollaborate().done (canCollaborate) =>
           @set('canCollaborate', canCollaborate)
+          @loaded.resolve()
 
     getClient: () ->
       if not @_client
@@ -69,6 +75,12 @@ define ['underscore', 'backbone', 'github'], (_, Backbone, Github) ->
         @_client = new Github({})
         @set('canCollaborate', false)
       return @_client
+
+    clearRepo: () ->
+      @set
+        'repoUser': null
+        'repoName': null
+        'branch': null
 
     getRepo: () ->
       repoUser = @get('repoUser')
