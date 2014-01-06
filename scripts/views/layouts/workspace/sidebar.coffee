@@ -7,6 +7,9 @@ define [
   'filtered-collection'
 ], ($, Marionette, mediaTypes, AddView, TocView) ->
 
+
+  $window = $(window)
+
   return class Sidebar extends Marionette.Layout
     initialize: (options) ->
       @filteredMediaTypes = new Backbone.FilteredCollection(null, {collection:mediaTypes})
@@ -27,7 +30,16 @@ define [
         # pending large css refactor is the best thing i can think of
         $('body').toggleClass("#{name}-minimized")
 
+    # Ensure the height of the sidebar is always the height of the window
+    onWindowResize: () ->
+      height = $window.height()
+      @$el.css {height:height}
+
     onShow: () ->
+      # Update the width/height of main so we can have Scrollable boxes that vertically stretch the entire page
+      $window.on('resize', @onWindowResize.bind(@))
+      @onWindowResize()
+
       model = @model
       collection = @collection or model.getChildren?()
 
