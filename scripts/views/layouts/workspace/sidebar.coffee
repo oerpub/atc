@@ -25,7 +25,7 @@ define [
         name = @$el.parent().attr('id')
         # set minimized class on parent based on element id, this seems really hackish but
         # pending large css refactor is the best thing i can think of
-        @$el.parents('#workspace-container').toggleClass(name+'-minimized')
+        $('body').toggleClass("#{name}-minimized")
 
     onShow: () ->
       model = @model
@@ -45,5 +45,5 @@ define [
     # Sticking to American spelling here
     maximize: () ->
       name = @$el.parent().attr('id')
-      @$el.parents('#workspace-container').removeClass(name+'-minimized')
+      $('body').removeClass("#{name}-minimized")
       return @
