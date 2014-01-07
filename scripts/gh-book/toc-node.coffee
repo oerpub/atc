@@ -54,7 +54,7 @@ define [
             # dropped next to whatever document is the navmodel.
             srcPath = Path.dirname(realModel.id)
             dstPath = Path.dirname(root.navModel.id)
-            json.id = Path.normpath(dstPath + '/' + uuid(newTitle))
+            json.id = Path.normpath(dstPath + '/' + uuid(newTitle) + '.html')
 
             if json.body and srcPath != dstPath
               $elements = $(json.body)

@@ -7,6 +7,9 @@ More information can be found in the
 [documentation](https://github.com/oerpub/documentation/) repository as well as
 in the [docs](docs) directory.
 
+## Book Format
+* [textbook-repo-structure.md](https://github.com/oerpub/github-bookeditor/blob/master/docs/textbook-repo-structure.md)
+
 ## Technologies used
 * [Backbone.js](http://backbonejs.org/)
 * [Marionette](http://marionettejs.com/)
