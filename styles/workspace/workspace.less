@@ -81,12 +81,15 @@
       // Make sure the content title (orange bar) is always on the TOP of the page
       position: fixed;
       z-index: 1000;
-      top: 0px;
-      min-width: @menu-and-content-min-width + 85px; // HACK: Depends on the toolbar width (# of buttons)
+      top: 0;
+      left: 0;
+      right: 0;
 
-      background-color: @module-editor-color;
-      height: @panel-heading-height;
-      line-height: @panel-heading-line-height;
+      .title-bar {
+        background-color: @module-editor-color;
+        line-height: @panel-heading-line-height;
+        height: @panel-heading-height;
+      }
 
       #editor-title-text {
         color: @panel-heading-color;

@@ -535,13 +535,15 @@ aside#sidebar > div { // TOC
 // Shift the content based on which sidebars are maximized
 #menu-and-content {
   // Sidebar Maximized
-  body.workspace-minimized:not(.sidebar-minimized) & { margin-left: @toc-width + @aside-handle-width; }
+  body.workspace-minimized:not(.sidebar-minimized) & { &, .content-title { margin-left: @toc-width + @aside-handle-width; } }
   // Workspace Maximized
-  body.sidebar-minimized:not(.workspace-minimized) & { margin-left: @picker-width + @aside-handle-width; }
+  body.sidebar-minimized:not(.workspace-minimized) & { &, .content-title { margin-left: @picker-width + @aside-handle-width; } }
   // Both Minimized
-  body.workspace-minimized.sidebar-minimized & { margin-left: @aside-handle-width * 2; }
+  body.workspace-minimized.sidebar-minimized & { &, .content-title { margin-left: @aside-handle-width * 2; } }
   // Both Maximized
-  margin-left: @toc-width + @picker-width;
+  &, .content-title {
+    margin-left: @toc-width + @picker-width;
+  }
 }
 
 // The sidebar-workspace does not need to shift because it is left-most
