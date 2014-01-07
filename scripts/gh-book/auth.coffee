@@ -25,6 +25,7 @@ define [
       'click #show-diffs': 'showDiffsModal'
       'submit #edit-repo-form': 'editRepo'
       'click [data-select-repo]': 'selectRepo'
+      'click [data-create-repo]': 'createRepo'
 
     initialize: () ->
       # When a model has changed (triggered `dirty`) update the Save button
@@ -188,6 +189,49 @@ define [
         @isDirty = false
         @render()
 
+    createRepo: (e) ->
+      e.preventDefault()
+
+      bookName = prompt('what should the book be named?').replace(/\ /g, '-')
+
+      client = session.getClient()
+      auth = @
+
+      emptyRepo = client.getRepo('oerpub', 'empty-book').git
+
+      emptyRepo.getTree('gh-pages', {recursive: true}).then (tree) ->
+        tree = _.filter(tree, (item) -> item.type == 'blob')
+        files = {}
+        requests = []
+
+        _.each tree, (blob) ->
+          requests.push emptyRepo.getBlob(blob.sha).then (result) ->
+            files[blob.path] = result
+
+        $.when.apply($, requests).done ->
+
+          # create the new book repo
+          client.getUser().createRepo(bookName, {auto_init: true}).then ->
+            newRepo = client.getRepo(session.get('id'), bookName)
+
+            # create a gh-pages branch off of the master that `auto_init` created
+            newRepo.getBranch('master').getCommits().then (commits) ->
+
+              ref = {
+                ref: "refs/heads/gh-pages"
+                sha: commits[0].sha
+              }
+
+              newRepo.git.createRef(ref).then ->
+  
+                # set gh-pages to default branch
+                newRepo.setDefaultBranch('gh-pages').then ->
+             
+                  # upload all those files to gh-pages 
+                  newRepo.getBranch('gh-pages').writeMany(files).done ->
+
+                    # go there
+                    auth._selectRepo(session.get('id'), bookName)
 
     selectRepo: (e) ->
       # Prevent form submission
