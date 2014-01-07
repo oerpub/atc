@@ -65,6 +65,7 @@ define ['jquery'], ($) ->
         'oer/definition'
         'oer/multipart'
         'oer/copy'
+        'common/dom-to-xhtml'
       ]
 
       # This whole thing is what's needed to:
