@@ -1,4 +1,14 @@
-@import "../../styles/main.less";
+/* Similar to bookish/styles/main.less, but here so we can correctly import
+ * from bower_components. */
+
+/* Bootstrap */
+@import "../../bower_components/bootstrap/less/bootstrap.less";
+/* Font-Awesome */
+@import "../../bower_components/font-awesome/build/assets/font-awesome/less/font-awesome.less";
+
+/* App Styles */
+@import "../../bower_components/bookish/styles/global.less";
+@import "../../bower_components/bookish/styles/workspace/workspace.less";
 
 .x-media-type-icon(@media-type; @add-title; @color; @char) {
   @mt-selector: ~"[data-media-type='@{media-type}']";
