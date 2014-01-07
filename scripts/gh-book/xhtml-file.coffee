@@ -51,6 +51,25 @@ define [
 
   xhtmlToDocument = (html) ->
     parser = new DOMParser()
+
+    # The html should be html5 coded xhtml. A doctype is not required, but
+    # if the document has xhtml entities it won't parse correctly.
+    # Add a doctype only if needed. Only consider first 1000 characters or so
+    # of the document, since doctype should be early on, to avoid performance
+    # hit when scanning large documents.
+    if html.slice(0, 1000).toLowerCase().indexOf('<!doctype') < 0
+      # If any entities beyond the allowed html5 ones are used, assume
+      # legacy xhtml. The allowed entities are amp, lt, gt, quot and apos.
+      # Here we use a negative lookahead assertion. You may have to call a perl
+      # coder to explain it.
+      if /&(?!(amp|lt|gt|quot|apos))\w+;/.test(html)
+        # If the document has an xml declaration, insert right after that.
+        # Otherwise insert the DOCTYPE declaration at the beginning.
+        html = html.replace(
+          /^(\s*<\?xml [^>]*>)?/,
+          "$&\n<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.1//EN' 'http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd'>\n"
+        )
+
     doc = parser.parseFromString(html, 'text/xml')
     # Chrome litters the entire dom with duplicate ns attributes
     $(doc).find('html *[xmlns="http://www.w3.org/1999/xhtml"]').removeAttr('xmlns')
@@ -169,8 +188,8 @@ define [
       @loadImages($html)
 
       attributes =
-        head: $head[0]?.innerHTML.trim()
-        body: $body[0]?.innerHTML.trim()
+        head: $head[0]?.innerHTML?.trim() or ''
+        body: $body[0]?.innerHTML?.trim() or ''
 
       # Set the title that is in the `<head>`
       # TODO: Re-enable after the sprint
