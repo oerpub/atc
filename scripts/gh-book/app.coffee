@@ -254,7 +254,7 @@ define [
             return false
 
           routes:
-            '':             'goDefault'
+            '':             'goRepoSelect'
             'repo/:repoUser/:repoName(/branch/:branch)': 'goDefault'
             'repo/:repoUser/:repoName(/branch/:branch)/workspace': 'goWorkspace'
             'repo/:repoUser/:repoName(/branch/:branch)/migrate(/:task)': 'goMigrate'
@@ -332,6 +332,15 @@ define [
                 else
                   controller.goWorkspace()
 
+          goRepoSelect: ->
+            session.clearRepo()
+
+            App.main.show(welcomeView)
+
+            welcomeView.once 'close', () =>
+              @goDefault(session.get('repoUser'), session.get('repoName'))
+
+            welcomeView.editRepoModal()
 
         # When the controller navigates, ask our router to update the url.
         controller.on 'navigate', (route) -> router._navigate route
@@ -362,21 +371,15 @@ define [
     # If localStorage does not contain a password or OAuth token then show the SignIn modal.
     # Otherwise, load the workspace
     if session.get('password') or session.get('token')
-      if not session.get 'repoName'
-        welcomeView.once 'close', () =>
-          startRouting()
-        welcomeView.editRepoModal()
-      else
+  
+      # since we already have a password, the session
+      # will be doing things
+      session.loaded.done ->
         startRouting()
     else
       # The user has not logged in yet so pop up the modal
       welcomeView.once 'close', () =>
-        if session.get 'repoName'
-          startRouting()
-        else
-          welcomeView.once 'close', () =>
-            startRouting()
-          welcomeView.editRepoModal()
+        startRouting()
 
       welcomeView.signInModal()
 
