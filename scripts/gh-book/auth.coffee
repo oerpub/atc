@@ -215,23 +215,16 @@ define [
             newRepo = client.getRepo(session.get('id'), bookName)
 
             # create a gh-pages branch off of the master that `auto_init` created
-            newRepo.getBranch('master').getCommits().then (commits) ->
+            newRepo.getBranch('master').createBranch('gh-pages').then ->
 
-              ref = {
-                ref: "refs/heads/gh-pages"
-                sha: commits[0].sha
-              }
+              # set gh-pages to default branch
+              newRepo.setDefaultBranch('gh-pages').then ->
+           
+                # upload all those files to gh-pages 
+                newRepo.getBranch('gh-pages').writeMany(files).done ->
 
-              newRepo.git.createRef(ref).then ->
-  
-                # set gh-pages to default branch
-                newRepo.setDefaultBranch('gh-pages').then ->
-             
-                  # upload all those files to gh-pages 
-                  newRepo.getBranch('gh-pages').writeMany(files).done ->
-
-                    # go there
-                    auth._selectRepo(session.get('id'), bookName)
+                  # go there
+                  auth._selectRepo(session.get('id'), bookName)
 
     selectRepo: (e) ->
       # Prevent form submission
