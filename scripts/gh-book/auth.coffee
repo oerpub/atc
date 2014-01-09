@@ -192,12 +192,11 @@ define [
     createRepo: (e) ->
       e.preventDefault()
 
-      bookName = prompt('what should the book be named?').replace(/\ /g, '-')
-
-      client = session.getClient()
-      auth = @
-
-      emptyRepo = client.getRepo('oerpub', 'empty-book').git
+      bookName      = @$el.find('#repo-name').val().replace(/\ /g, '-')
+      bookOwnerName = @$el.find('#repo-user').val()
+      client        = session.getClient()
+      auth          = @
+      emptyRepo     = client.getRepo('oerpub', 'empty-book').git
 
       emptyRepo.getTree('gh-pages', {recursive: true}).then (tree) ->
         tree = _.filter(tree, (item) -> item.type == 'blob')
@@ -209,10 +208,15 @@ define [
             files[blob.path] = result
 
         $.when.apply($, requests).done ->
+          
+          if (bookOwner == session.get('id'))
+            bookOwner = client.getUser()
+          else
+            bookOwner = client.getOrg(bookOwnerName)
 
           # create the new book repo
-          client.getUser().createRepo(bookName, {auto_init: true}).then ->
-            newRepo = client.getRepo(session.get('id'), bookName)
+          bookOwner.createRepo(bookName, {auto_init: true}).then ->
+            newRepo = client.getRepo(bookOwnerName, bookName)
 
             # create a gh-pages branch off of the master that `auto_init` created
             newRepo.getBranch('master').createBranch('gh-pages').then ->
@@ -224,10 +228,13 @@ define [
                 newRepo.getBranch('gh-pages').writeMany(files).done ->
 
                   # go there
-                  auth._selectRepo(session.get('id'), bookName)
+                  auth._selectRepo(bookOwnerName, bookName)
+          .fail ->
+            auth.$el.find('[data-repo-missing]').hide()
+            auth.$el.find('[data-error-creating]').show()
+             
 
     selectRepo: (e) ->
-      # Prevent form submission
       e.preventDefault()
 
       data = $(e.target).data('selectRepo')

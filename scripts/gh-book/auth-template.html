@@ -36,7 +36,6 @@
       {{/if}}
       <!-- dropdown menu links -->
       <li><a href="#edit-repo-modal" data-toggle="modal">Other Bookshelves</a></li>
-      <li><a href="" data-create-repo>Create Bookshelf</a></li>
     </ul>
   </div>
 </div>
@@ -133,7 +132,7 @@
     {{/if}}
 
     <h5>View another shelf:</h5>
-    <form id="edit-repo-form" action="#" class="form-inline" style="padding: 0; margin: 0;">
+    <form id="edit-repo-form" action="#" class="form-inline" style="padding: 0; margin: 0 0 10px; 0">
       <label for="repo-user">Owner ID: </label>
       <input id="repo-user" class="input-small" required="true" type="text" placeholder="github user id" value="{{repoUser}}"/>
       <label for="repo-name">Bookshelf ID: </label>
@@ -141,7 +140,14 @@
       <button type="submit" class="btn btn-primary">Next</button>
     </form>
 
-    <span class="text-error hide" data-repo-missing>Sorry, this bookshelf does not exist.</span>
+    <span class="hide" data-repo-missing>
+      This bookshelf does not exist. Create it?
+      <button class="btn" data-create-repo>Yes, Create New Shelf</button>
+      <button class="btn" data-dismiss="modal">Cancel</button>
+    </span>
+    <span class="hide text-error" data-error-creating>
+      Failed to create bookshelf, are you sure you have access to create it under this owner?
+    </span>
   </div>
 </div>
 
