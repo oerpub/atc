@@ -75,17 +75,38 @@ define [
       @isDirty = true
       @render()
 
-    signInModal: () ->
+    signInModal: (options) ->
       $modal = @$el.find('#sign-in-modal')
 
       # The hidden event on #login-advanced should not propagate
       $modal.find('#login-advanced').on 'hidden', (e) => e.stopPropagation()
 
+      # We'll return a promise, and resolve it upon login or close.
+      promise = $.Deferred()
+      $modal.data('login-promise', promise)
+
       # attach a close listener
-      $modal.on 'hidden', () => @trigger 'close'
+      $modal.on 'hidden', () =>
+        if promise.state() == 'pending'
+          promise.reject()
+        @trigger 'close'
+
+      # Hide parts of the modal, if requested, for a simpler UI.
+      if options
+        if options.anonymous != undefined and options.anonymous == false
+          $modal.find('#login-anonymous').hide()
+        else
+          $modal.find('#login-anonymous').show()
+
+        if options.info != undefined and options.info == false
+          $modal.find('#login-info-wrapper').hide()
+        else
+          $modal.find('#login-info-wrapper').show()
 
       # Show the modal
       $modal.modal {show:true}
+
+      return promise
 
     # Show a diff of all unsaved models
     showDiffsModal: () ->
@@ -154,6 +175,9 @@ define [
         token:    @$el.find('#github-token').val()
         password: @$el.find('#github-password').val()
 
+      # signInModal persists the promise on the modal
+      promise = @$el.find('#sign-in-modal').data('login-promise')
+
       if not (attrs.password or attrs.token)
         alert 'We are terribly sorry but github recently changed so you must login to use their API.\nPlease refresh and provide a password or an OAuth token.'
       else
@@ -164,6 +188,7 @@ define [
           # The 1st time the editor loads up it waits for the modal to close
           # but `render` will hide the modal without triggering 'close'
           @trigger 'close'
+          promise.resolve()
         .fail (err) =>
           alert 'Login failed. Did you use the correct credentials?'
 
