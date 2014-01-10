@@ -156,9 +156,14 @@ define [
     forkContent: () ->
 
       if not (@model.get('password') or @model.get('token'))
-        alert 'Please Sign In before trying to fork a book'
+        @signInModal
+          anonymous: false
+          info: false
+        .done () => @_forkContent()
         return
+      @_forkContent()
 
+    _forkContent: () ->
       @model.getClient().getLogin().done (login) =>
         @model.getRepo()?.fork().done () =>
           @model.set 'repoUser', login
