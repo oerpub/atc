@@ -2,13 +2,12 @@
   "name": "bookish",
   "main": "scripts/main.js",
   "dependencies": {
-    "octokit": "0.9.6",
     "jsSHA": "Caligatio/jsSHA#release-1.42",
     "requirejs": "2.1.6",
     "requirejs-text": "2.0.7",
     "require-cs": "0.4.4",
     "require-css": "0.0.6",
-    "require-less": "0.0.8",
+    "require-less": "guybedford/require-less#master",
     "require-handlebars-plugin": "f35a00080cce34ab8b5181247524972aef33e1d0",
     "requirejs-plugins": "v1.0.2",
     "font-awesome": "v3.1.1",
@@ -33,11 +32,11 @@
     "tests"
   ],
   "homepage": "https://github.com/oerpub/bookish",
-  "_release": "01397390ed",
+  "_release": "c8c92f15d6",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "01397390ed67e9a320591c5024425ac823259029"
+    "commit": "c8c92f15d6edbb86624b431fd0b53d5050e72f64"
   },
   "_source": "git://github.com/oerpub/bookish.git",
   "_target": "master"

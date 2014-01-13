@@ -6,15 +6,15 @@
     "./docs/assets/css/bootstrap.css"
   ],
   "dependencies": {
-    "jquery": ">=1.8.0 <2.1.0"
+    "jquery": "~1.8.0"
   },
-  "homepage": "https://github.com/twbs/bootstrap",
+  "homepage": "https://github.com/twitter/bootstrap",
   "_release": "2.3.2",
   "_resolution": {
     "type": "version",
     "tag": "v2.3.2",
-    "commit": "b4c4072679943773a7582daa63f545ba818fa627"
+    "commit": "74a66551ff12f969df98fde3ca7ddc6515ee1c76"
   },
-  "_source": "git://github.com/twbs/bootstrap.git",
+  "_source": "git://github.com/twitter/bootstrap.git",
   "_target": "v2.3.2"
 }

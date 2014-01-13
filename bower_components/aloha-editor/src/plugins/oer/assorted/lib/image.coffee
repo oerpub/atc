@@ -224,7 +224,9 @@ define [
           else
             loadLocalFile files[0]
 
-      $uploadUrl.on 'change', () ->
+      # When the url input changes, or if the user presses enter, update the
+      # image and preview it if configured to do so.
+      showRemoteImage = () ->
         $previewImg = $placeholder.find('img')
         url = $uploadUrl.val()
         setImageSource(url)
@@ -232,6 +234,11 @@ define [
           $previewImg.attr 'src', url
           $placeholder.show()
           $imageselect.hide()
+
+      $uploadUrl.on 'change', showRemoteImage
+      $uploadUrl.on 'keydown', null, 'return', (e) ->
+        e.preventDefault()
+        showRemoteImage()
 
       # On save update the actual img tag. Use the submit event because this
       # allows the use of html5 validation.
@@ -241,14 +248,18 @@ define [
 
         altAdded = (not $el.attr 'alt') and dialog.find('[name=alt]').val()
 
+        changed = true if dialog.find('[name=alt]').val() != $el.attr('alt')
+
         $el.attr 'src', imageSource
         $el.attr 'alt', dialog.find('[name=alt]').val()
 
         if dialog.find('.image-title').val()
+          changed = true if dialog.find('.image-title').val() != $title.text()
           $title.html dialog.find('.image-title').val()
         # else probably should remove the $title element
 
         if dialog.find('.image-caption').val()
+          changed = true if dialog.find('.image-caption').val() != $caption.text()
           $caption.html dialog.find('.image-caption').val()
         # else probably should remove the $caption element
 
@@ -257,21 +268,28 @@ define [
         else
           setEditText $el.parent()
 
+        if changed
+          editableId = $el.parents('.aloha-editable').last().attr('id')
+          Aloha.getEditableById(editableId).smartContentChange({type: 'block-change'})
+
         deferred.resolve({target: $el[0], files: $uploadImage[0].files})
 
       dialog.on 'shown', () =>
-        dialog.find('input,textarea,select').filter(':visible').first().focus()
+
+        if not dialog.find('[name=alt]').val().length
+          dialog.find('[name=alt]').focus()
+        else
+          dialog.find('input,textarea,select').filter(':visible').first().focus()
         
       dialog.on 'click', '.btn.action.cancel', (evt) =>
         evt.preventDefault() # Don't submit the form
-        $el.parents('.semantic-container').remove() unless editing
-        deferred.reject(target: $el[0])
+        deferred.reject(target: $el[0], editing: editing)
         dialog.modal('hide')
 
       dialog.on 'hidden', (event) ->
         # If hidden without being confirmed/cancelled, reject
         if deferred.state()=='pending'
-          deferred.reject(target: $el[0])
+          deferred.reject(target: $el[0], editing: editing)
         # Clean up after dialog was hidden
         dialog.remove()
 
@@ -398,7 +416,7 @@ define [
       $dialog.off('click').on 'click', '.btn.action.cancel', (evt) =>
         evt.preventDefault() # Don't submit the form
         $img.parents('.semantic-container').remove() unless editing
-        deferred.reject(target: $img[0])
+        deferred.reject(target: $img[0], editing: editing)
         $dialog.modal('hide')
 
       return deferred.promise()
@@ -419,7 +437,7 @@ define [
       editing = false
       return showModalDialog2($figure, $img, $dialog, editing)
 
-    promise.then( (data)=>
+    promise.then (data)=>
       # upload image, if a local file was chosen
       if data.files.length
         newEl.addClass('aloha-image-uploading')
@@ -427,15 +445,11 @@ define [
           if url
             jQuery(data.target).attr('src', url)
           newEl.removeClass('aloha-image-uploading')
-      # once we start using jQuery 1.8+, promise.then() will return a new promise and we can rewrite this as :
-      #     when(promise).then(...).then(source_this_image_dialog).then(...)
-      promise2 = source_this_image_dialog()
-      promise2.then( ()=>
-        # hide the dialog on the way out
-        $dialog.modal 'hide'
-        return
-      )
-    )
+    .then(source_this_image_dialog).then () =>
+      $dialog.modal 'hide'
+    .fail (data) =>
+      jQuery(data.target).parents('.semantic-container').remove() unless data.editing
+      
     return
 
   $('body').bind 'aloha-image-resize', ->
