@@ -191,21 +191,26 @@ nav#workspace-sidebar-toc{
     font-family: FontAwesome;
     font-size: 14px;
   }
+  span.migration-result:before {
+    content: "\f141";
+    font-family: FontAwesome;
+    font-size: 14px;
+  }
   p.success {
     span:before {
-      content:  "\f046";
+      content:  "\f00c";
     }
     &.completed {
       background-color: #DEFF99;
     }
     &.skipped {
-      background-color: #FFFFDD;
+      background-color: #FFFFFF;
     }
   }
   p.fail {
     background-color: #EEA6A6;
     span:before {
-      content:  "\f096";
+      content:  "\f00d";
     }
   }
 }

@@ -18,6 +18,8 @@ define [
       $loadingText = @$el.find('#loading-text')
       $log = @$el.find('#migrationlog')
 
+      $viewport = @$el.parent().parent()
+
       if @task
         $loadingText.html("Running migration for #{@task}")
         # Check task for funny characters, because we're about to feed it
@@ -35,9 +37,13 @@ define [
                 return if not queue.length
                 model = queue.shift()
 
+                # Are we scrolled to the bottom? Used later to avoid jumping
+                # to the end while the user is trying to scroll elsewhere.
+                scrollBottom = $viewport[0].offsetHeight + $viewport[0].scrollTop >= $viewport[0].scrollHeight
+
                 # migrate the module. Pull in the requested task and pass
                 # the module to it.
-                $line = $("<p>Migrating #{model.id} ... <span> </span></p>")
+                $line = $("<p>Migrating #{model.id} <span class=\"migration-result\"> </span></p>")
                 $log.append($line)
                 resolve = (cls, tt) ->
                   migrated++
@@ -52,6 +58,11 @@ define [
                       placement: 'right'
                       trigger: 'hover'
                 resolve = resolve.bind($line)
+
+                # Scroll window to the current log line, but only if it's
+                # scrolled to the bottom already. This allows a user to scroll
+                # up without interference.
+                $viewport.scrollTop($viewport[0].scrollHeight) if scrollBottom
 
                 f(model).done (msg) ->
                   c = 'success'
