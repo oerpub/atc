@@ -34,7 +34,10 @@ define [
             # migrate any type of content.
             require ["cs!migrations/#{@task}"], (f) ->
               migrateModels = (queue) ->
-                return if not queue.length
+                if not queue.length
+                  $log.append("<p class=\"migration-complete\">Migration completed at #{(new Date()).toLocaleString()}</p>")
+                  return
+
                 model = queue.shift()
 
                 # Are we scrolled to the bottom? Used later to avoid jumping
