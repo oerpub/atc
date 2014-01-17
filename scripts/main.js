@@ -3,7 +3,8 @@
 
   /* We need to tell less to use relative paths very early on */
   window.less = {
-    relativeUrls: true
+    relativeUrls: true,
+    logLevel: 1
   };
 
   require({
