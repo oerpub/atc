@@ -50,6 +50,7 @@ define [
     }
 
   xhtmlToDocument = (html) ->
+    original = html # Keep a copy before modification
     parser = new DOMParser()
 
     # The html should be html5 coded xhtml. A doctype is not required, but
@@ -71,9 +72,38 @@ define [
         )
 
     doc = parser.parseFromString(html, 'text/xml')
-    # Chrome litters the entire dom with duplicate ns attributes
-    $(doc).find('html *[xmlns="http://www.w3.org/1999/xhtml"]').removeAttr('xmlns')
-    return doc
+
+    if $(doc).find('parsererror').length
+      # It's possible that the document wasn't valid xhtml. In that case, retry
+      # as html. This isn't legal in ebooks, but we provide it here as a
+      # convenience.
+
+      # This works in Firefox and maybe a couple of others.
+      doc = (new DOMParser).parseFromString(original, "text/html")
+
+      # Chrome (as of version 28) does not support text/html, so we need
+      # further hackery
+      if doc == null
+        # Remove any xml declarations, if this really was XML, we would
+        # not be in this situation.
+        original = original.replace(/^(\s*<\?xml [^>]*>)?/, '')
+        doc = document.implementation.createHTMLDocument ""
+        doc.documentElement.innerHTML = original
+
+        # Chrome's XMLSerializer will serialize to HTML if you pass it an
+        # HTMLDocument, so instead we clone the contents of the html document
+        # and construct an xhtml document.
+        xmldoc = document.implementation.createDocument(
+          'http://www.w3.org/1999/xhtml', 'html', null)
+        $(doc).find('html > *').clone().each (idx, node) ->
+          xmldoc.documentElement.appendChild(node)
+        return xmldoc
+      else
+        return doc
+    else
+      # Chrome litters the entire dom with duplicate ns attributes
+      $(doc).find('html *[xmlns="http://www.w3.org/1999/xhtml"]').removeAttr('xmlns')
+      return doc
 
   # The `Content` model contains the following members:
   #
