@@ -208,8 +208,8 @@ define [
             files[blob.path] = result
 
         $.when.apply($, requests).done ->
-          
-          if (bookOwner == session.get('id'))
+         
+          if (bookOwnerName == session.get('id'))
             bookOwner = client.getUser()
           else
             bookOwner = client.getOrg(bookOwnerName)
