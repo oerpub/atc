@@ -1,15 +1,32 @@
 BOWER = '../bower_components' # The path to the downloaded bower components
+BOOKISH = "#{BOWER}/bookish"
+MINIFIED_ALOHA = false # Set to true to use a minified build
 
 require.config
   # # Configure Library Locations
   paths:
 
+    # Components we inherit from bookish
+    aloha:        "#{BOOKISH}/scripts/aloha"
+    collections:  "#{BOOKISH}/scripts/collections"
+    configs:      "#{BOOKISH}/scripts/configs"
+    controllers:  "#{BOOKISH}/scripts/controllers"
+    helpers:      "#{BOOKISH}/scripts/helpers"
+    mixins:       "#{BOOKISH}/scripts/mixins"
+    models:       "#{BOOKISH}/scripts/models"
+    nls:          "#{BOOKISH}/scripts/nls"
+    routers:      "#{BOOKISH}/scripts/routers"
+    views:        "#{BOOKISH}/scripts/views"
+    templates:    "#{BOOKISH}/templates"
+    styles:       "#{BOOKISH}/styles"
+
+
     # Change some of the models for the Application to use github and EPUB
-    app: 'gh-book/app'
     github: "#{BOWER}/octokit/octokit"
     'collections/content': 'gh-book/content'
     'views/workspace/menu/auth': 'gh-book/auth'
-    session: 'gh-book/session'
+    'styles/gh-book': '../styles/gh-book'
+
     jsSHA: "#{BOWER}/jsSHA/src/sha_dev" # Calculate the sha1 hash for resources
     'filtered-collection': "#{BOWER}/filtered-collection/vendor/assets/javascripts/backbone-filtered-collection"
 
@@ -20,9 +37,8 @@ require.config
 
     mathjax: 'http://cdn.mathjax.org/mathjax/2.0-latest/MathJax.js?config=TeX-MML-AM_HTMLorMML-full&amp;delayStartupUntil=configured'
 
-    # ## Template and Style paths
-    templates: '../templates'
-    styles: '../styles'
+    # ## Template path
+    'templates/gh-book': '../templates/gh-book'
 
     # ## Requirejs plugins
     text: "#{BOWER}/requirejs-text/text"
@@ -38,7 +54,9 @@ require.config
     marionette: "#{BOWER}/backbone.marionette/lib/backbone.marionette"
 
     # ## UI Libraries
-    aloha: "#{BOWER}/aloha-editor/src/lib/aloha"
+    aloha: (MINIFIED_ALOHA and
+        "#{BOWER}/aloha-editor/target/build-profile-with-oer/rjs-output/lib/aloha" or
+        "#{BOWER}/aloha-editor/src/lib/aloha")
     select2: "#{BOWER}/select2/select2"
     moment: "#{BOWER}/moment/moment"
     # Bootstrap Plugins
@@ -116,10 +134,19 @@ require.config
       exports: 'Select2'
 
     aloha:
-      deps: ['jquery', 'mathjax', 'cs!configs/aloha', 'bootstrapModal', 'bootstrapPopover']
+      deps: [
+        'jquery',
+        'mathjax',
+        'cs!aloha-local',
+        'bootstrapModal',
+        'bootstrapPopover',
+        "css!#{BOWER}/aloha-editor/src/css/aloha.css"]
       exports: 'Aloha'
       init: () ->
         jQuery.browser.version = 10000 # Hack to fix aloha-editor's version checking
+        require(['less!styles/gh-book/aloha-override.less']) # make sure this comes in after the aloha.css
+        if MINIFIED_ALOHA
+          Aloha.require ["css!aloha.css"]
         return Aloha
 
     mathjax:
@@ -135,6 +162,10 @@ require.config
     diffview:
       deps: ["css!#{BOWER}/jsdifflib/diffview"]
       exports:'diffview'
+
+    'filtered-collection':
+      deps: ['backbone']
+
 
   # Handlebars Requirejs Plugin Configuration
   # This configures `requirejs` plugins (used when loading templates `'hbs!...'`).

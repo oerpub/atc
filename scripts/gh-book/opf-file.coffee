@@ -3,11 +3,25 @@ define [
   'cs!collections/media-types'
   'cs!collections/content'
   'cs!mixins/loadable'
+  'cs!models/utils'
   'cs!gh-book/xhtml-file'
   'cs!gh-book/toc-node'
   'cs!gh-book/toc-pointer-node'
-  'cs!gh-book/utils'
-], (Backbone, mediaTypes, allContent, loadable, XhtmlFile, TocNode, TocPointerNode, Utils) ->
+  'cs!gh-book/uuid'
+  'hbs!templates/gh-book/defaults/opf'
+  'hbs!templates/gh-book/defaults/nav'
+], (
+  Backbone,
+  mediaTypes,
+  allContent,
+  loadable,
+  Utils,
+  XhtmlFile,
+  TocNode,
+  TocPointerNode,
+  uuid,
+  defaultOpf,
+  defaultNav) ->
 
   SAVE_DELAY = 10 # ms
 
@@ -20,8 +34,19 @@ define [
 
     branch: true # This element will show up in the sidebar listing
 
-    initialize: () ->
-      super {root:@}
+    initialize: (options) ->
+      options.root = @
+
+
+      @$xml = $($.parseXML defaultOpf(options))
+
+      # Give the content an id if it does not already have one
+      if not @id
+        @setNew()
+        @id = "content/#{uuid(@get('title'))}.opf"
+
+     # For TocNode, let it know this is the root
+      super options
 
       # Contains all entries in the OPF file (including images)
       @manifest = new Backbone.Collection()
@@ -38,22 +63,33 @@ define [
           options.doNotReparse = true
           @navModel.set 'body', @_serializeNavModel(), options
 
+          # if we're updating the nav the spine also probably needs to be updated
+          @_buildSpine()
+
       @tocNodes.on 'add', (model, collection, options) =>
         if not options.doNotReparse
           # Keep track of local changes if there is a remote conflict
           @_localNavAdded[model.id] = model
 
 
+      # If a node was added-to/removed-from a TocNode ensure it is/is-not in the set of `tocNodes`
+      # TODO: This may be redundant and may be able to be removed
       @tocNodes.on 'tree:add',    (model, collection, options) => @tocNodes.add model, options
       @tocNodes.on 'tree:remove', (model, collection, options) => @tocNodes.remove model, options
 
-
+      # When the book title changes update the OPF XML
+      # TODO: use the value of `@get('title')` when serializing instead.
       @on 'change:title', (model, value, options) =>
         $title = @$xml.find('title')
         if value != $title.text()
           $title.text(value)
           @_save()
 
+      # When a title changes on one of the nodes in the ToC:
+      #
+      # 1. remember the change
+      # 2. try to autosave
+      # 3. if a remote conflict occurse the remembered change will be replayed (see `onReloaded`)
       @tocNodes.on 'change:title', (model, value, options) =>
         return if not model.previousAttributes()['title'] # skip if we are parsing the file
         return if @ == model # Ignore if changing the OPF title
@@ -78,6 +114,14 @@ define [
       @_localNavAdded = {}
       @_localTitlesChanged = {}
 
+      # save opf files on creation
+      @_save() if @_isNew
+
+    # return null so `TocPointerNode.getRoot()` returns the OPF file instead of the EPUBContainer for new books
+    # HACK because when a new book is added to EPUBComtainer the parent is set.
+    # Then, in toc-branch, goEdit uses model.getRoot() to determine what to render in the sidebar
+    getParent: () -> null
+
     # Add an `<item>` to the OPF.
     # Called from `@manifest.add` and `@resolveSaveConflict`
     _addItem: (model, options={}, force=true) ->
@@ -95,12 +139,13 @@ define [
         href:         relPath
         id:           relPath # TODO: escape the slashes so it is a valid id
         'media-type': model.mediaType
+        properties:  "mathml scripted"
 
-      # Randomly add the item into the manifest.
-      # Always appending results in commit conflicts at the bottom of the file
-      $manifestChildren = $manifest.children()
-      index = $manifestChildren.length * Math.random()
-      $item.insertBefore($manifestChildren.eq(index))
+      if options.properties
+        $item.attr 'properties', options.properties
+        delete options.properties
+
+      $manifest.append($item)
       # TODO: Depending on the type add it to the spine for EPUB2
 
       @_markDirty(options, force)
@@ -109,14 +154,39 @@ define [
       # This is useful when the OPF file was remotely updated
       @_localAddedItems[model.id] = model
 
+    # Called on "autosave".
+    # Only save the navModel and new files (and all the OPF files).
+    # Delay the save and if more than one thing changed during SAVE_DELAY
+    # only save once.
+    #
+    # Reason for SAVE_DELAY: a "move" is 2 operations, `remove` followed by `add`
     _save: ->
+
+      # this is a new book, set some default elements
+      if not @navModel
+        #create the default nav file
+        @navModel = new XhtmlFile {title: @get('title'), extension: '-nav.html'}
+        @navModel.set('body', defaultNav())
+
+        # add the new navModel to our opf and the allcontent container
+        @_addItem(@navModel, {properties: 'nav'})
+        allContent.add(@navModel)
+
+        #create empty module for the book
+        module = new XhtmlFile {title: 'module1'}
+        allContent.add(module)
+        @addChild(module) # for the nav file
+        @_addItem(module) # for this opf file
+
+
       clearTimeout(@_savingTimeout)
       @_savingTimeout = setTimeout (() =>
         allContent.save(@navModel, false, true) # include-resources, include-new-files
         delete @_savingTimeout
       ), SAVE_DELAY
 
-
+    # A book is not loaded until the navModel is loaded.
+    # Once the navModel is loaded, "autosave" whenever it changes.
     _loadComplex: (fetchPromise) ->
       fetchPromise
       .then () =>
@@ -201,6 +271,23 @@ define [
       @getChildren().reset([], {doNotReparse:true})
       recBuildTree(@getChildren(), $root, @navModel.id)
 
+    _buildSpine: ->
+      
+      start = @serialize()
+      spine = @$xml.find('spine').empty()
+
+      update = (model) =>
+        if model.mediaType == XhtmlFile::mediaType
+          $('<itemref />')
+            .attr('idref', Utils.relativePath(@id, model.id))
+            .appendTo(spine)
+         
+        if model.getChildren?().first()
+          model.getChildren().forEach update
+      
+      @getChildren().forEach update
+
+      @_markDirty({}) if start != @serialize()
 
     _serializeNavModel: () ->
       $body = $(@navModel.get 'body')
@@ -219,6 +306,9 @@ define [
             path = Utils.relativePath(@navModel.id, model.id)
             $node = $('<a></a>')
             .attr('href', path)
+            # Use `.toJSON().title` instead of `.get('title')` to support
+            # TocPointerNodes which inherit their title if it is not overridden
+            .text(model.toJSON().title)
           else
             $node = $('<span></span>')
             $li.attr(model.htmlAttributes or {})
@@ -236,7 +326,7 @@ define [
       @getChildren().forEach (child) => recBuildList($navOl, child)
       $nav.append($navOl)
       # Trim the HTML and put newlines between elements
-      html =  $wrapper[0].innerHTML
+      html =  $wrapper.html()
       html = html.replace(/></g, '>\n<')
       return html
 
@@ -254,9 +344,21 @@ define [
       return model.trigger 'error', 'INVALID_OPF' if not @$xml[0]
 
       # For the structure of the TOC file see `OPF_TEMPLATE`
-      bookId = @$xml.find("##{@$xml.get 'unique-identifier'}").text()
+      # An epub must contain an IDREF to the dublincore element that has the
+      # identification information. The `identifer` fallback is there to handle
+      # books created while a misspelling was in place.
+      IdAttr = @$xml[0].firstChild.getAttribute('unique-identifier') or
+        @$xml[0].firstChild.getAttribute('unique-identifer')
 
-      title = @$xml.find('title').text()
+      # Use querySelectorAll (because firefox breaks with jquery) to find the
+      # value of the referenced unique identifier.
+      bookIds = @$xml[0].querySelectorAll("##{IdAttr}")
+      bookId = bookIds.length and $(bookIds[0]).text() or ''
+
+      # Explicitly use querySelectorAll, because firefox fails to find the
+      # title if you just use jQuery.find().
+      titles = @$xml[0].querySelectorAll('title')
+      title = titles.length and $(titles[0]).text() or ''
 
       # The manifest contains all the items in the spine
       # but the spine element says which order they are in
@@ -351,6 +453,11 @@ define [
       @navModel.onReloaded = onReloaded
       @navModel.onSaved = onSaved
 
+    # Override the tree's removeMe (which just asks the parent to remove the child)
+    removeMe: ->
+      require ['cs!gh-book/epub-container'], (EpubContainer) =>
+        EpubContainer::instance().removeChild(@)
+        allContent.save()
 
     newNode: (options) ->
       model = options.model
@@ -360,13 +467,8 @@ define [
         #@tocNodes.add node
       return node
 
-    # When the book opens, find the first non-toc element in the toc and
-    # open its contentView, if it has one.
-    contentView: (callback) ->
-      first = @tocNodes.at(1) # First item is always the toc/nav, we pick the second
-      if first and first.contentView
-        return first.contentView(callback)
-      return null
+    # Do not change the contentView when the book opens
+    contentView: null
 
     # Change the sidebar view when editing this
     sidebarView: (callback) ->

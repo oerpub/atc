@@ -15,6 +15,7 @@ define [
   'cs!gh-book/opf-file'
 ], (allContent, Saveable, loadableMixin, treeMixin, OpfFile) ->
 
+  instance = undefined
 
   class EpubContainer extends Saveable
     mediaType: 'application/epub+zip'
@@ -24,18 +25,23 @@ define [
       urlRoot: ''
     id: 'META-INF/container.xml'
 
-    initialize: () ->
-      @children = new Backbone.Collection()
 
-      @children.on 'reset', (collection, options) =>
+    initialize: () ->
+
+      @_initializeTreeHandlers({root:@})
+
+      @getChildren().on 'add remove', (collection, options) =>
+        @_markDirty(options, true)
+
+      @getChildren().on 'reset', (collection, options) =>
         return if options.loading
 
-        allContent.reset(@children.models)
+        allContent.reset(@getChildren().models)
 
     # Extend the `load()` to wait until all content is loaded
     _loadComplex: (fetchPromise) ->
       return fetchPromise.then () =>
-        contentPromises = @children.map (model) => model.load()
+        contentPromises = @getChildren().map (model) => model.load()
         # Return a new promise that finishes once all the contentPromises have loaded
         return $.when.apply($, contentPromises)
 
@@ -44,9 +50,9 @@ define [
       sha = json.sha
       xmlStr = json.content
 
-      $xml = jQuery(xmlStr)
+      @$xml = jQuery(xmlStr)
       ret = []
-      $xml.find('rootfiles > rootfile').each (i, el) =>
+      @$xml.find('rootfiles > rootfile').each (i, el) =>
         $el = jQuery(el)
         href = $el.attr 'full-path'
         mediaType = $el.attr 'media-type'
@@ -56,15 +62,34 @@ define [
           allContent.add(model, {loading:true})
         ret.push model
 
-      return @children.reset(ret, {loading:true})
+      return @getChildren().reset(ret, {loading:true})
 
-    serialize: () -> console.warn('BUG: Do not know how to serialize EPUBContainer yet')
+    serialize: () ->
+      return if not @$xml
+
+      rootfiles = @$xml.find('rootfiles').empty()
+
+      @getChildren().each (child) ->
+        jQuery('<rootfile/>')
+          .attr('media-type', child.mediaType)
+          .attr('full-path', child.id)
+          .attr('version', "1.0")
+          .appendTo(rootfiles)
+
+      serializer = new XMLSerializer()
+      serializer.serializeToString(@$xml.get(0))
 
     # Called by `loadableMixin.reload` when the repo settings change
-    reset: () -> @children.reset()
-
-    addChild: (book) -> @children.add(book)
+    reset: () -> @getChildren().reset()
 
   EpubContainer = EpubContainer.extend loadableMixin
+  EpubContainer = EpubContainer.extend treeMixin
+
+  EpubContainer::addChild = (book) -> @getChildren().add(book)
+  EpubContainer::removeChild = (book) -> @getChildren().remove(book)
+
+  EpubContainer::instance = () ->
+      return instance || instance = new EpubContainer()
+
   # All content in the Workspace
   return EpubContainer
