@@ -174,8 +174,7 @@ define [
 
             # $img.attr('data-src', attrs.id) TODO: Aloha keeps stripping this attribute off.
 
-          @set 'body',
-            (new XMLSerializer).serializeToString($html.find('body')[0]),
+          @set 'body', $html.find('body')[0].innerHTML?.trim(),
             imageupdate: true
 
     # Since the titles are purely cosmetic do not mark the model as dirty
@@ -253,7 +252,7 @@ define [
           # Set `parse:true` so the dirty flag for saving is not set
           if counter == 0
             @set 'body',
-              (new XMLSerializer).serializeToString($html.find('body')[0]),
+              $html.find('body')[0].innerHTML?.trim(),
               parse:true, loading:true
           deferred.resolve()
           return
@@ -270,8 +269,7 @@ define [
           counter--
           # Set `parse:true` so the dirty flag for saving is not set
           if counter == 0
-            @set 'body',
-              (new XMLSerializer).serializeToString($html.find('body')[0]),
+            @set 'body', $html.find('body')[0].innerHTML?.trim(),
               parse:true, loading:true
           deferred.resolve()
         .fail ->
