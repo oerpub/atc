@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "main": "scripts/main.js",
   "dependencies": {
-    "bookish": "oerpub/bookish#master"
+    "bookish": "oerpub/bookish#master",
+    "octokit": "0.9.12"
   },
   "ignore": [
     "**/.*",
