@@ -69,3 +69,5 @@ This allows very simple xhtml migrations to be written, for example:
 
 ## Existing migrations
 * tables: Scans all xhtml documents and remove captions from tables.
+* head: Looks for documents with `<head>undefined</head>`, caused by another
+  bug in the code, and remove it.
