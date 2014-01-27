@@ -34,9 +34,12 @@ define [
 
     branch: true # This element will show up in the sidebar listing
 
+    addAction: =>
+      require ['cs!views/layouts/workspace/bookshelf'], (Bookshelf) =>
+        Bookshelf::editBook(@)
+
     initialize: (options) ->
       options.root = @
-
 
       @$xml = $($.parseXML defaultOpf(options))
 
@@ -84,6 +87,150 @@ define [
         if value != $title.text()
           $title.text(value)
           @_save()
+
+      tagHelper = (tagName, value, attributes, skipSave) =>
+        return if not value
+
+        container = @$xml.find('metadata')
+        selector = tagName.replace(':', '\\:')
+        template = "<#{tagName}"
+
+        _.forIn attributes, (value, key) ->
+          selector += "[#{key}=\"#{value}\"]"
+          template += " #{key}=\"#{value}\""
+
+        @$xml.find(selector).remove()
+        template += "></#{tagName}>"
+
+        container.append('    ')
+        $(template).text(value).appendTo(container)
+        container.append('\n')
+        @_save() if not skipSave
+
+      if @_isNew
+        now = new Date()
+        tagHelper(
+          'date',
+          "#{now.getFullYear()}-#{now.getMonth()+1}-#{now.getDate()}",
+          {'event': 'publication'},
+          true
+        )
+          
+      @on 'change:language', (model, value, options) =>
+        tagHelper('dc:language', value, {type: "dcterms:RFC4646"})
+      @on 'change:description', (model, value, options) =>
+        tagHelper('dc:description', value)
+      @on 'change:rights', (model, value, options) =>
+        tagHelper('dc:rights', value)
+
+      metaHelper = (value, attributes) =>
+        tagHelper('meta', value, attributes)
+
+      @on 'change:rightsUrl', (model, value, options) =>
+        metaHelper(value, {property: "schema:useRightsUrl"})
+      @on 'change:dateModified', (model, value, options) =>
+        metaHelper(value, {properties: "dcterms:modified"})
+
+      tagGroupHelper = (tagName, values, attributes) =>
+        # make sure we actually have content
+        values = values.filter (i) -> i
+        return if not values.length
+
+        container = @$xml.find('metadata')
+        selector = tagName.replace(':', '\\:')
+        template = "<#{tagName}"
+ 
+        _.forIn attributes, (value, key) ->
+          selector += "[#{key}=\"#{value}\"]"
+          template += " #{key}=\"#{value}\""
+
+        existing = @$xml.find(selector).remove()
+        template += "></#{tagName}>"
+
+        _.each values, (value) ->
+          container.append('    ')
+          $(template).text(value).appendTo(container)
+          container.append('\n')
+
+        @_save()
+
+      @on 'change:subject', (model, value, options) =>
+        tagGroupHelper(
+          'dc:subject',
+          value,
+          {type: "http:\\github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"}
+        )
+      @on 'change:rightsHolders', (model, value, options) =>
+        tagGroupHelper(
+          'meta',
+          value,
+          {property: "dcterms:rightsHolder"}
+        )
+      @on 'change:keywords', (model, value, options) =>
+        # make sure we actually have content
+        value = value.filter (i) -> i
+        return if not value.length
+
+        container = @$xml.find('metadata')
+        template = "<dc:subject></dc:subject>"
+        @$xml.find('dc\\:subject').not('[type]').remove()
+
+        _.each(value, (keyword) ->
+          container.append('    ')
+          $(template).text(keyword).appendTo(container)
+          container.append('\n')
+        )
+
+        @_save()
+
+      creatorHelper = (type, shortType, creators) =>
+
+        # make sure we actually have content
+        creators = creators.filter (i) -> i
+        return if not creators.length
+
+        # remove the existing ones so we don't get dupes
+        @$xml.find('dc\\:creator[id^="'+type+'"]').remove()
+        @$xml.find('meta[refines^="#'+type+'"]').remove()
+
+        container = @$xml.find('metadata')
+
+        template = "<dc:creator id=\"#{type}\"></dc:creator>"
+        refinesTemplate = "<meta refines=\"##{type}\" property=\"role\" scheme=\"marc:relators\"></meta>"
+
+        i = 1
+        _.each(creators, (creator) ->
+          id = type + '-' + i++
+
+          # coffeescript's regex parser is dumb and needs the character
+          # class for that leading space
+          fileAs = creator.split(/[ ](?=[^ ]+$)/).reverse().join(', ')
+
+          container.append('    ')
+          newCreator = $(template).text(creator)
+            .attr('id', id)
+            .attr('file-as', fileAs)
+            .appendTo(container)
+          container.append('\n    ')
+          $(refinesTemplate)
+            .attr('refines', '#' + id)
+            .text(shortType)
+            .appendTo(container)
+          container.append('\n')
+        )
+        
+        @_save()
+
+      @on 'change:authors', (model, value, options) =>
+        creatorHelper('author', 'aut', value)
+      @on 'change:publishers', (model, value, options) =>
+        creatorHelper('publisher', 'pbl', value)
+      @on 'change:editors', (model, value, options) =>
+        creatorHelper('editor', 'edt', value)
+      @on 'change:translators', (model, value, options) =>
+        creatorHelper('translator', 'trl', value)
+      @on 'change:illustrators', (model, value, options) =>
+        creatorHelper('illustrator', 'ill', value)
 
       # When a title changes on one of the nodes in the ToC:
       #
