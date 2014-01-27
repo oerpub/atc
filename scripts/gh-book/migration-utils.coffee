@@ -20,8 +20,9 @@ define ['jquery', 'gh-book/xhtml-file'], ($, XhtmlFile) ->
 
           # DOMParser does not properly throw an exception, but at least chrome
           # and firefox adds a parsererror element to the page.
-          if $body.find('parsererror').length
-            promise.reject()
+          err = $body.find('parsererror')
+          if err.length
+            promise.reject(err.find('div').html())
             return
 
           # Call callback here, pass the jquery wrapped doc. Callback modified
@@ -31,10 +32,10 @@ define ['jquery', 'gh-book/xhtml-file'], ($, XhtmlFile) ->
             model.set
                 body: serializer.serializeToString(doc)
 
-          promise.resolve()
+          promise.resolve("completed")
         .fail () ->
           promise.reject()
       else
         # Not an xhtml module, We're done.
-        promise.resolve()
+        promise.resolve("skipped")
       return promise
