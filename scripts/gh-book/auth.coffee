@@ -27,6 +27,7 @@ define [
       'submit #edit-repo-form': 'editRepo'
       'click [data-select-repo]': 'selectRepo'
       'click #fork-book-modal .organisation-block': 'selectOrg'
+      'click #fork-redirect-modal .btn-primary': 'selectFork'
 
     initialize: () ->
       # When a model has changed (triggered `dirty`) update the Save button
@@ -181,6 +182,11 @@ define [
       @$el.find('#fork-book-modal').modal('hide')
       @__forkContent(userinfo, org)
 
+    selectFork: (e) ->
+      e.preventDefault()
+      login = @$el.find('#fork-redirect-modal').data('login').modal('hide')
+      @_selectRepo(login, @model.get('repoName'))
+
     forkContent: () ->
       if not (@model.get('password') or @model.get('token'))
         @signInModal
@@ -213,8 +219,9 @@ define [
       promise.done (repos) =>
         existing = _.findWhere(repos, {name: reponame})
         if existing
-          # TODO: Present choice of cancel, or take me there
-          alert('You already have a copy of this bookshelf')
+          # Choice of cancel, or take me there
+          @$el.find('#fork-redirect-modal').data('login', login).modal
+            show: true
         else
           @___forkContent(login)
 
