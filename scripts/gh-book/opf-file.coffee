@@ -10,6 +10,7 @@ define [
   'cs!gh-book/uuid'
   'hbs!templates/gh-book/defaults/opf'
   'hbs!templates/gh-book/defaults/nav'
+  'hbs!templates/gh-book/nav-head'
 ], (
   Backbone,
   mediaTypes,
@@ -21,7 +22,9 @@ define [
   TocPointerNode,
   uuid,
   defaultOpf,
-  defaultNav) ->
+  defaultNav,
+  navHead
+) ->
 
   SAVE_DELAY = 10 # ms
 
@@ -105,13 +108,15 @@ define [
         container.append('    ')
         $(template).text(value).appendTo(container)
         container.append('\n')
-        @_save() if not skipSave
-
+        if not skipSave
+          setNavModel({})
+          @_save()
       if @_isNew
         now = new Date()
+        @set('datePublished', "#{now.getFullYear()}-#{now.getMonth()+1}-#{now.getDate()}")
         tagHelper(
           'date',
-          "#{now.getFullYear()}-#{now.getMonth()+1}-#{now.getDate()}",
+          @get('datePublished'),
           {'event': 'publication'},
           true
         )
@@ -133,7 +138,6 @@ define [
 
       tagGroupHelper = (tagName, values, attributes) =>
         # make sure we actually have content
-        values = values.filter (i) -> i
         return if not values.length
 
         container = @$xml.find('metadata')
@@ -152,6 +156,7 @@ define [
           $(template).text(value).appendTo(container)
           container.append('\n')
 
+        setNavModel({})
         @_save()
 
       @on 'change:subject', (model, value, options) =>
@@ -168,7 +173,6 @@ define [
         )
       @on 'change:keywords', (model, value, options) =>
         # make sure we actually have content
-        value = value.filter (i) -> i
         return if not value.length
 
         container = @$xml.find('metadata')
@@ -181,6 +185,7 @@ define [
           container.append('\n')
         )
 
+        setNavModel({})
         @_save()
 
       creatorHelper = (type, shortType, creators) =>
@@ -219,6 +224,7 @@ define [
           container.append('\n')
         )
         
+        setNavModel({})
         @_save()
 
       @on 'change:authors', (model, value, options) =>
@@ -438,7 +444,11 @@ define [
 
     _serializeNavModel: () ->
       $body = $(@navModel.get 'body')
+
+      @navModel.set('head', navHead(@toJSON()))
+
       $wrapper = $('<div></div>').append $body
+
       $nav = $wrapper.find 'nav'
       $nav.empty()
 
