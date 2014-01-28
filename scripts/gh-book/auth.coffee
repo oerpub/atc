@@ -157,7 +157,7 @@ define [
 
 
     organisationModal: (info, orgs) ->
-      $modal = @$el.find('#fork-book-modal').data('userinfo', info)
+      $modal = @$el.find('#fork-book-modal')
       $body = $modal.find('.modal-body').empty()
 
       # Own account
@@ -176,15 +176,14 @@ define [
       $modal.modal {show:true}
 
     selectOrg: (e) ->
-      userinfo = @$el.find('#fork-book-modal').data('userinfo')
       $block = $(e.target).addBack().closest('.organisation-block')
       org = $block.data('org-name') or null
       @$el.find('#fork-book-modal').modal('hide')
-      @__forkContent(userinfo, org)
+      @__forkContent(org)
 
     selectFork: (e) ->
       e.preventDefault()
-      login = @$el.find('#fork-redirect-modal').data('login').modal('hide')
+      login = @$el.find('#fork-redirect-modal').modal('hide').data('login')
       @_selectRepo(login, @model.get('repoName'))
 
     forkContent: () ->
@@ -203,27 +202,15 @@ define [
           if orgs.length > 1
             @organisationModal(userinfo, orgs)
           else
-            @__forkContent(userinfo, userinfo.login)
+            @__forkContent(userinfo.login)
 
-    __forkContent: (userinfo, login) ->
+    __forkContent: (login) ->
       # If repo exists, go to it or cancel. Else fork.
-      if userinfo.login == login
-        # Forking into own space
-        promise = @model.getClient().getUser().getRepos()
-      else
-        # Forking into organisation
-        promise = @model.getClient().getOrg(login).getRepos()
-
-      # Check if repo exists
-      reponame = @model.getRepo().git.repoName
-      promise.done (repos) =>
-        existing = _.findWhere(repos, {name: reponame})
-        if existing
-          # Choice of cancel, or take me there
-          @$el.find('#fork-redirect-modal').data('login', login).modal
-            show: true
-        else
-          @___forkContent(login)
+      @model.getClient().getRepo(login, @model.get('repoName')).getInfo().done () =>
+        @$el.find('#fork-redirect-modal').data('login', login).modal
+          show: true
+      .fail () =>
+        @___forkContent(login)
 
     ___forkContent: (login) ->
       $modal = @$el.find('#fork-progress-modal')
