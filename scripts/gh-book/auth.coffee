@@ -206,11 +206,16 @@ define [
                 @__forkContent(info.login)
 
     __forkContent: (login) ->
+      $modal = @$el.find('#fork-progress-modal')
+      $body = $modal.find('.modal-body')
+      $body.html('Creating a Fork...')
+      $modal.modal {show: true}
       @model.getRepo()?.fork(login).done () =>
+        $body.html('Waiting for Fork to become available...')
+
         # Change upstream repo
         wait = 2000
         @model.set 'repoUser', login
-        # TODO: Some feedback here would be nice
 
         # Poll until repo becomes available
         pollRepo = () =>
@@ -227,6 +232,8 @@ define [
               wait = wait * 2 # exponential backoff
             else
               alert('Fork failed')
+          .always () =>
+            $modal.modal('hide')
         pollRepo()
             
 
