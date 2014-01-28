@@ -10,7 +10,7 @@ define [
   'cs!gh-book/uuid'
   'hbs!templates/gh-book/defaults/opf'
   'hbs!templates/gh-book/defaults/nav'
-  'hbs!templates/gh-book/nav-head'
+  'hbs!templates/gh-book/nav-metadata'
 ], (
   Backbone,
   mediaTypes,
@@ -23,7 +23,7 @@ define [
   uuid,
   defaultOpf,
   defaultNav,
-  navHead
+  navMetadata
 ) ->
 
   SAVE_DELAY = 10 # ms
@@ -443,14 +443,13 @@ define [
       @_markDirty({}) if start != @serialize()
 
     _serializeNavModel: () ->
-      $body = $(@navModel.get 'body')
+      $wrapper = $('<div></div>')
 
-      @navModel.set('head', navHead(@toJSON()))
-
-      $wrapper = $('<div></div>').append $body
+      $wrapper
+        .append(navMetadata(@toJSON()))
+        .append('<nav></nav>')
 
       $nav = $wrapper.find 'nav'
-      $nav.empty()
 
       $navOl = $('<ol></ol>')
 

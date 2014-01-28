@@ -1,4 +1,3 @@
-
     <title>{{ title }}</title>
     {{#if language }}<meta itemprop="inLanguage" content="{{ language }}" />{{/if}}
     {{#if rights }}<meta property="dc:license" content="{{ rights }}" />{{/if}}
@@ -18,3 +17,9 @@
     {{/each}}
     {{#each illustrators }}<meta itemprop="illustrator" content="{{ this }}" />
     {{/each}}
+
+    <h1 itemprop="name">{{ title }}</h1>
+    {{#if authors }}<span class="authors">By: {{#each authors }}{{#if @index }}, {{/if}}<span itemprop="author">{{ this }}</span>{{/each}}</span>{{/if}}
+    {{#if publishers }}<span class="publisher">Published By: {{#each publishers }}{{#if @index }}, {{/if}}<span itemprop="publisher">{{ this }}</span>{{/each}}</span>{{/if}}
+    {{#if description }}<p itemprop="description">{{ description }}</p>{{/if}}
+    <h1>Table of Contents</h1>
