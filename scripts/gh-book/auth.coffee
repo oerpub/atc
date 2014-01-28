@@ -1,5 +1,6 @@
 define [
   'jquery'
+  'underscore'
   'marionette'
   'cs!collections/content'
   'cs!session'
@@ -10,7 +11,7 @@ define [
   'cs!configs/github'
   'bootstrapModal'
   'bootstrapCollapse'
-], ($, Marionette, allContent, session, remoteUpdater, authTemplate, difflib, diffview, config) ->
+], ($, _, Marionette, allContent, session, remoteUpdater, authTemplate, difflib, diffview, config) ->
 
   return class GithubAuthView extends Marionette.ItemView
     template: authTemplate
@@ -25,6 +26,7 @@ define [
       'click #show-diffs': 'showDiffsModal'
       'submit #edit-repo-form': 'editRepo'
       'click [data-select-repo]': 'selectRepo'
+      'click #fork-book-modal .organisation-block': 'selectOrg'
 
     initialize: () ->
       # When a model has changed (triggered `dirty`) update the Save button
@@ -153,8 +155,32 @@ define [
       $modal.modal {show:true}
 
 
-    forkContent: () ->
+    organisationModal: (info, orgs) ->
+      $modal = @$el.find('#fork-book-modal')
+      $body = $modal.find('.modal-body').empty()
 
+      # Own account
+      $block = $('<div class="organisation-block"></div>')
+      $avatar = $('<img alt="avatar">').attr('src', info.avatar_url)
+      $name = $('<span>').html(info.login)
+      $block.append($avatar).append($name)
+      $body.append($block)
+      for org in orgs
+        $block = $('<div class="organisation-block"></div>')
+        $avatar = $('<img alt="avatar">').attr('src', org.avatar_url)
+        $name = $('<span>').html(org.login)
+        $block.append($avatar).append($name).data('org-name', org.login)
+        $body.append($block)
+
+      $modal.modal {show:true}
+
+    selectOrg: (e) ->
+      $block = $(e.target).addBack().closest('.organisation-block')
+      org = $block.data('org-name') or null
+      @$el.find('#fork-book-modal').modal('hide')
+      @__forkContent(org)
+
+    forkContent: () ->
       if not (@model.get('password') or @model.get('token'))
         @signInModal
           anonymous: false
@@ -164,11 +190,45 @@ define [
       @_forkContent()
 
     _forkContent: () ->
-      @model.getClient().getLogin().done (login) =>
-        @model.getRepo()?.fork().done () =>
-          @model.set 'repoUser', login
+      reponame = @model.getRepo().git.repoName
+      @model.getClient().getUser().getRepos().done (repos) =>
+        # Check if repo exists
+        existing = _.findWhere(repos, {name: reponame})
+        if existing
+          # TODO: Present choice of cancel, or take me there
+          alert('You already have a copy of this bookshelf')
+        else
+          @model.getClient().getUser().getInfo().done (info) =>
+            @model.getClient().getUser().getOrgs().done (orgs) =>
+              if orgs.length > 1
+                @organisationModal(info, orgs)
+              else
+                @__forkContent(info.login)
 
-    
+    __forkContent: (login) ->
+      @model.getRepo()?.fork(login).done () =>
+        # Change upstream repo
+        wait = 2000
+        @model.set 'repoUser', login
+        # TODO: Some feedback here would be nice
+
+        # Poll until repo becomes available
+        pollRepo = () =>
+          @model.getRepo()?.getInfo('').done (info) =>
+            # TODO: Clear feedback
+            require ['backbone', 'cs!controllers/routing'], (bb, controller) =>
+              # Filter out the view bit, then set the url to reflect the fork
+              v = RegExp('repo/[^/]*/[^/]*(/branch/[^/]*)?/(.*)').exec(
+                bb.history.getHash())[2]
+              controller.trigger 'navigate', v
+          .fail () =>
+            if wait < 30
+              setTimeout(pollRepo, wait)
+              wait = wait * 2 # exponential backoff
+            else
+              alert('Fork failed')
+        pollRepo()
+            
 
     signIn: (e) ->
       # Prevent form submission
