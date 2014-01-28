@@ -156,7 +156,7 @@ define [
 
 
     organisationModal: (info, orgs) ->
-      $modal = @$el.find('#fork-book-modal')
+      $modal = @$el.find('#fork-book-modal').data('userinfo', info)
       $body = $modal.find('.modal-body').empty()
 
       # Own account
@@ -175,10 +175,11 @@ define [
       $modal.modal {show:true}
 
     selectOrg: (e) ->
+      userinfo = @$el.find('#fork-book-modal').data('userinfo')
       $block = $(e.target).addBack().closest('.organisation-block')
       org = $block.data('org-name') or null
       @$el.find('#fork-book-modal').modal('hide')
-      @__forkContent(org)
+      @__forkContent(userinfo, org)
 
     forkContent: () ->
       if not (@model.get('password') or @model.get('token'))
@@ -190,22 +191,34 @@ define [
       @_forkContent()
 
     _forkContent: () ->
+      # If user has more than one organisation, ask which one.
+      @model.getClient().getUser().getInfo().done (userinfo) =>
+        @model.getClient().getUser().getOrgs().done (orgs) =>
+          if orgs.length > 1
+            @organisationModal(userinfo, orgs)
+          else
+            @__forkContent(userinfo, userinfo.login)
+
+    __forkContent: (userinfo, login) ->
+      # If repo exists, go to it or cancel. Else fork.
+      if userinfo.login == login
+        # Forking into own space
+        promise = @model.getClient().getUser().getRepos()
+      else
+        # Forking into organisation
+        promise = @model.getClient().getOrg(login).getRepos()
+
+      # Check if repo exists
       reponame = @model.getRepo().git.repoName
-      @model.getClient().getUser().getRepos().done (repos) =>
-        # Check if repo exists
+      promise.done (repos) =>
         existing = _.findWhere(repos, {name: reponame})
         if existing
           # TODO: Present choice of cancel, or take me there
           alert('You already have a copy of this bookshelf')
         else
-          @model.getClient().getUser().getInfo().done (info) =>
-            @model.getClient().getUser().getOrgs().done (orgs) =>
-              if orgs.length > 1
-                @organisationModal(info, orgs)
-              else
-                @__forkContent(info.login)
+          @___forkContent(login)
 
-    __forkContent: (login) ->
+    ___forkContent: (login) ->
       $modal = @$el.find('#fork-progress-modal')
       $body = $modal.find('.modal-body')
       $body.html('Creating a Fork...')
@@ -220,7 +233,6 @@ define [
         # Poll until repo becomes available
         pollRepo = () =>
           @model.getRepo()?.getInfo('').done (info) =>
-            # TODO: Clear feedback
             require ['backbone', 'cs!controllers/routing'], (bb, controller) =>
               # Filter out the view bit, then set the url to reflect the fork
               v = RegExp('repo/[^/]*/[^/]*(/branch/[^/]*)?/(.*)').exec(
