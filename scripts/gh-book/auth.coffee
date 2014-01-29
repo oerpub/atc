@@ -226,7 +226,7 @@ define [
 
         # Poll until repo becomes available
         pollRepo = () =>
-          @model.getRepo()?.getInfo('').done (info) =>
+          @model.getRepo()?.getInfo().done (info) =>
             require ['backbone', 'cs!controllers/routing'], (bb, controller) =>
               # Filter out the view bit, then set the url to reflect the fork
               v = RegExp('repo/[^/]*/[^/]*(/branch/[^/]*)?/(.*)').exec(
