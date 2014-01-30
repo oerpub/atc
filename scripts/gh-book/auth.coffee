@@ -26,6 +26,7 @@ define [
       'submit #edit-repo-form': 'editRepo'
       'click [data-select-repo]': 'selectRepo'
       'click [data-create-repo]': 'createRepo'
+      'shown #edit-repo-modal': 'createRepoModal'
 
     initialize: () ->
       # When a model has changed (triggered `dirty`) update the Save button
@@ -188,6 +189,11 @@ define [
       promise.done () =>
         @isDirty = false
         @render()
+    
+    createRepoModal: (e) ->
+      if @isDirty and !confirm 'You have unsaved changes in this bookshelf, are you sure you want to abandon them?'
+        $('#edit-repo-modal').modal 'hide'
+
 
     createRepo: (e) ->
       e.preventDefault()
