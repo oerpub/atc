@@ -96,17 +96,18 @@ define [
 
         container = @$xml.find('metadata')
         selector = tagName.replace(':', '\\:')
-        template = "<#{tagName}"
+
+        element = @$xml[0].createElement(tagName)
 
         _.forIn attributes, (value, key) ->
-          selector += "[#{key}=\"#{value}\"]"
-          template += " #{key}=\"#{value}\""
+          selector += "[#{key.replace(':', '\\:')}=\"#{value}\"]"
+          element.setAttributeNS('http://www.idpf.org/2007/opf', key, value)
 
-        @$xml.find(selector).remove()
-        template += "></#{tagName}>"
+        container.find(selector).remove()
 
         container.append('    ')
-        $(template).text(value).appendTo(container)
+        element.textContent = value
+        container[0].appendChild(element)
         container.append('\n')
         if not skipSave
           setNavModel({})
@@ -117,12 +118,12 @@ define [
         tagHelper(
           'date',
           @get('datePublished'),
-          {'event': 'publication'},
+          {'opf:event': 'publication'},
           true
         )
           
       @on 'change:language', (model, value, options) =>
-        tagHelper('dc:language', value, {type: "dcterms:RFC4646"})
+        tagHelper('dc:language', value, {'xsi:type': "dcterms:RFC4646"})
       @on 'change:description', (model, value, options) =>
         tagHelper('dc:description', value)
       @on 'change:rights', (model, value, options) =>
@@ -142,18 +143,19 @@ define [
 
         container = @$xml.find('metadata')
         selector = tagName.replace(':', '\\:')
-        template = "<#{tagName}"
+        template = @$xml[0].createElement(tagName)
  
         _.forIn attributes, (value, key) ->
-          selector += "[#{key}=\"#{value}\"]"
-          template += " #{key}=\"#{value}\""
+          selector += "[#{key.replace(':', '\\:')}=\"#{value}\"]"
+          template.setAttributeNS('http://www.idpf.org/2007/opf', key, value)
 
         existing = @$xml.find(selector).remove()
-        template += "></#{tagName}>"
 
         _.each values, (value) ->
+          element = template.cloneNode()
           container.append('    ')
-          $(template).text(value).appendTo(container)
+          element.textContent = value
+          container[0].appendChild(element)
           container.append('\n')
 
         setNavModel({})
@@ -163,7 +165,7 @@ define [
         tagGroupHelper(
           'dc:subject',
           value,
-          {type: "http:\\github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"}
+          {'xsi:type': "http:\\github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"}
         )
       @on 'change:rightsHolders', (model, value, options) =>
         tagGroupHelper(
@@ -200,7 +202,8 @@ define [
 
         container = @$xml.find('metadata')
 
-        template = "<dc:creator id=\"#{type}\"></dc:creator>"
+        template = @$xml[0].createElement('dc:creator')
+
         refinesTemplate = "<meta refines=\"##{type}\" property=\"role\" scheme=\"marc:relators\"></meta>"
 
         i = 1
@@ -212,10 +215,12 @@ define [
           fileAs = creator.split(/[ ](?=[^ ]+$)/).reverse().join(', ')
 
           container.append('    ')
-          newCreator = $(template).text(creator)
-            .attr('id', id)
-            .attr('file-as', fileAs)
-            .appendTo(container)
+          newCreator = template.cloneNode()
+          newCreator.setAttribute('id', id)
+          newCreator.setAttributeNS('http://www.idpf.org/2007/opf', 'opf:file-as', fileAs)
+          newCreator.textContent = creator
+          container[0].appendChild(newCreator)
+
           container.append('\n    ')
           $(refinesTemplate)
             .attr('refines', '#' + id)
