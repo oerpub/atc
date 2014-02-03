@@ -28,6 +28,8 @@ define [
       'click [data-select-repo]': 'selectRepo'
       'click #fork-book-modal .organisation-block': 'selectOrg'
       'click #fork-redirect-modal .btn-primary': 'selectFork'
+      'click [data-create-repo]': 'createRepo'
+      'shown #edit-repo-modal': 'createRepoModal'
 
     initialize: () ->
       # When a model has changed (triggered `dirty`) update the Save button
@@ -290,10 +292,58 @@ define [
       promise.done () =>
         @isDirty = false
         @render()
+    
+    createRepoModal: (e) ->
+      if @isDirty and !confirm 'You have unsaved changes in this bookshelf, are you sure you want to abandon them?'
+        $('#edit-repo-modal').modal 'hide'
 
+
+    createRepo: (e) ->
+      e.preventDefault()
+
+      bookName      = @$el.find('#repo-name').val().replace(/\ /g, '-')
+      bookOwnerName = @$el.find('#repo-user').val()
+      client        = session.getClient()
+      auth          = @
+      emptyRepo     = client.getRepo('oerpub', 'empty-book').git
+
+      emptyRepo.getTree('gh-pages', {recursive: true}).then (tree) ->
+        tree = _.filter(tree, (item) -> item.type == 'blob')
+        files = {}
+        requests = []
+
+        _.each tree, (blob) ->
+          requests.push emptyRepo.getBlob(blob.sha).then (result) ->
+            files[blob.path] = result
+
+        $.when.apply($, requests).done ->
+         
+          if (bookOwnerName == session.get('id'))
+            bookOwner = client.getUser()
+          else
+            bookOwner = client.getOrg(bookOwnerName)
+
+          # create the new book repo
+          bookOwner.createRepo(bookName, {auto_init: true}).then ->
+            newRepo = client.getRepo(bookOwnerName, bookName)
+
+            # create a gh-pages branch off of the master that `auto_init` created
+            newRepo.getBranch('master').createBranch('gh-pages').then ->
+
+              # set gh-pages to default branch
+              newRepo.setDefaultBranch('gh-pages').then ->
+           
+                # upload all those files to gh-pages 
+                newRepo.getBranch('gh-pages').writeMany(files).done ->
+
+                  # go there
+                  auth._selectRepo(bookOwnerName, bookName)
+          .fail ->
+            auth.$el.find('[data-repo-missing]').hide()
+            auth.$el.find('[data-error-creating]').show()
+             
 
     selectRepo: (e) ->
-      # Prevent form submission
       e.preventDefault()
 
       data = $(e.target).data('selectRepo')
