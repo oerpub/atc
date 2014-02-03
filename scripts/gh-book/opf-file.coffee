@@ -38,6 +38,9 @@ define [
     branch: true # This element will show up in the sidebar listing
 
     addAction: =>
+      @triggerMetadataEdit()
+
+    triggerMetadataEdit: =>
       require ['cs!views/layouts/workspace/bookshelf'], (Bookshelf) =>
         Bookshelf::editBook(@)
 
@@ -123,19 +126,19 @@ define [
         )
           
       @on 'change:language', (model, value, options) =>
-        tagHelper('dc:language', value, {'xsi:type': "dcterms:RFC4646"})
+        tagHelper('dc:language', value, {'xsi:type': "dcterms:RFC4646"}) unless options.doNotUpdate
       @on 'change:description', (model, value, options) =>
-        tagHelper('dc:description', value)
+        tagHelper('dc:description', value) unless options.doNotUpdate
       @on 'change:rights', (model, value, options) =>
-        tagHelper('dc:rights', value)
+        tagHelper('dc:rights', value) unless options.doNotUpdate
 
       metaHelper = (value, attributes) =>
         tagHelper('meta', value, attributes)
 
       @on 'change:rightsUrl', (model, value, options) =>
-        metaHelper(value, {property: "schema:useRightsUrl"})
+        metaHelper(value, {property: "lrmi:useRightsUrl"}) unless options.doNotUpdate
       @on 'change:dateModified', (model, value, options) =>
-        metaHelper(value, {properties: "dcterms:modified"})
+        metaHelper(value, {properties: "dcterms:modified"}) unless options.doNotUpdate
 
       tagGroupHelper = (tagName, values, attributes) =>
         # make sure we actually have content
@@ -165,21 +168,21 @@ define [
         tagGroupHelper(
           'dc:subject',
           value,
-          {'xsi:type': "http:\\github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"}
-        )
+          {'xsi:type': "http://github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"}
+        ) unless options.doNotUpdate
       @on 'change:rightsHolders', (model, value, options) =>
         tagGroupHelper(
           'meta',
           value,
           {property: "dcterms:rightsHolder"}
-        )
+        ) unless options.doNotUpdate
       @on 'change:keywords', (model, value, options) =>
         # make sure we actually have content
-        return if not value.length
+        return if not value.length or options.doNotUpdate
 
         container = @$xml.find('metadata')
         template = "<dc:subject></dc:subject>"
-        @$xml.find('dc\\:subject').not('[type]').remove()
+        @$xml.find('dc\\:subject').not('[xsi\\:type="http://github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"]').remove()
 
         _.each(value, (keyword) ->
           container.append('    ')
@@ -233,15 +236,15 @@ define [
         @_save()
 
       @on 'change:authors', (model, value, options) =>
-        creatorHelper('author', 'aut', value)
+        creatorHelper('author', 'aut', value) unless options.doNotUpdate
       @on 'change:publishers', (model, value, options) =>
-        creatorHelper('publisher', 'pbl', value)
+        creatorHelper('publisher', 'pbl', value) unless options.doNotUpdate
       @on 'change:editors', (model, value, options) =>
-        creatorHelper('editor', 'edt', value)
+        creatorHelper('editor', 'edt', value) unless options.doNotUpdate
       @on 'change:translators', (model, value, options) =>
-        creatorHelper('translator', 'trl', value)
+        creatorHelper('translator', 'trl', value) unless options.doNotUpdate
       @on 'change:illustrators', (model, value, options) =>
-        creatorHelper('illustrator', 'ill', value)
+        creatorHelper('illustrator', 'ill', value) unless options.doNotUpdate
 
       # When a title changes on one of the nodes in the ToC:
       #
@@ -520,6 +523,23 @@ define [
       # title if you just use jQuery.find().
       titles = @$xml[0].querySelectorAll('title')
       title = titles.length and $(titles[0]).text() or ''
+
+      # read out metadata
+      @set {
+        language: @$xml.find('language[xsi\\:type="dcterms:RFC4646"]').text()
+        description: @$xml.find('description').text()
+        rights: @$xml.find('rights').text()
+        rightsUrl: @$xml.find('meta[property="lrmi:useRightsUrl"]').text()
+        dateModified: @$xml.find('meta[properties="dcterms:modified"]').text()
+        subject: $.makeArray @$xml.find('subject[xsi\\:type="http://github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"]').map((i, el) -> $(el).text())
+        rightsHolders: $.makeArray @$xml.find('meta[property="dcterms:rightsHolder"]').map((i, el) -> $(el).text())
+        keywords: $.makeArray @$xml.find('subject').not('[xsi\\:type="http://github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"]').map((i, el) -> $(el).text())
+        authors: $.makeArray @$xml.find('meta[property="role"]:contains(aut)').map((i, el) => @$xml.find($(el).attr('refines')).text())
+        publishers: $.makeArray @$xml.find('meta[property="role"]:contains(pbl)').map((i, el) => @$xml.find($(el).attr('refines')).text())
+        editors: $.makeArray @$xml.find('meta[property="role"]:contains(edt)').map((i, el) => @$xml.find($(el).attr('refines')).text())
+        translators: $.makeArray @$xml.find('meta[property="role"]:contains(trl)').map((i, el) => @$xml.find($(el).attr('refines')).text())
+        illustrators: $.makeArray @$xml.find('meta[property="role"]:contains(ill)').map((i, el) => @$xml.find($(el).attr('refines')).text())
+        }, {doNotUpdate: true}
 
       # The manifest contains all the items in the spine
       # but the spine element says which order they are in
