@@ -166,7 +166,7 @@ define [
       $block = $('<div class="organisation-block"></div>')
       $avatar = $('<img alt="avatar">').attr('src', info.avatar_url)
       $name = $('<span>').html(info.login)
-      $block.append($avatar).append($name)
+      $block.append($avatar).append($name).data('org-name', info.login)
       $body.append($block)
       for org in orgs
         $block = $('<div class="organisation-block"></div>')
@@ -207,24 +207,26 @@ define [
             @__forkContent(userinfo.login)
 
     __forkContent: (login) ->
-      # If repo exists, go to it or cancel. Else fork.
+      # If repo exists, go to it or cancel. Else fork. 
       @model.getClient().getRepo(login, @model.get('repoName')).getInfo().done () =>
         @$el.find('#fork-redirect-modal').data('login', login).modal
           show: true
       .fail () =>
         @___forkContent(login)
 
-    ___forkContent: (login) ->
+    ___forkContent: (org) ->
       $modal = @$el.find('#fork-progress-modal')
       $body = $modal.find('.modal-body')
       $body.html('Creating a Fork...')
       $modal.modal {show: true}
-      @model.getRepo()?.fork(login).done () =>
+
+      # If the chosen organisation is myself, leave it out.
+      @model.getRepo()?.fork(org != @model.get('id') and org or null).done () =>
         $body.html('Waiting for Fork to become available...')
 
         # Change upstream repo
         wait = 2000
-        @model.set 'repoUser', login
+        @model.set 'repoUser', org
 
         # Poll until repo becomes available
         pollRepo = () =>
