@@ -243,7 +243,10 @@ define [
             else
               alert('Fork failed')
           .always () =>
-            $modal.modal('hide')
+            # Leave it open for another two seconds, because sometimes
+            # the fork happens so quickly that people are unnerved by
+            # the flashing modal they couldn't read.
+            window.setTimeout((() -> $modal.modal('hide')), 2000)
         pollRepo()
             
 
