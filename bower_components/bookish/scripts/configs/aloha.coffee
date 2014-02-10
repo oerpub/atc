@@ -48,13 +48,15 @@ define ['jquery'], ($) ->
         'common/format'
         'common/block'
         'common/list'
+        'common/contenthandler'
+        'oer/paste'
         'oer/table'
         'extra/draganddropfiles'
-        'common/image'
         'oer/overlay'
         'oer/math'
         'oer/assorted'
         'ghbook/image'
+        'common/image'
         'oer/semanticblock'
         'oer/note'
         'oer/example'
@@ -64,6 +66,7 @@ define ['jquery'], ($) ->
         'oer/definition'
         'oer/multipart'
         'oer/copy'
+        'oer/cleanup'
       ]
 
       # This whole thing is what's needed to:
@@ -120,6 +123,8 @@ define ['jquery'], ($) ->
         rootTags: ['span', 'div', 'figure']
         defaults:
           '.default-block': {}
+      image:
+        handles: 'se'
       copy:
         path: () ->
           # The path of the current document can be determined from the hash
@@ -127,6 +132,11 @@ define ['jquery'], ($) ->
 
     smartContentChange:
       idle: 2000
+
+    contentHandler:
+      insertHtml: [ 'cleanup' ]
+      initEditable: []
+      getContents: []
 
   # In case some module wants the config object return it.
   return @Aloha
