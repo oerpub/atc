@@ -14,7 +14,8 @@
         }
         _.defaults(clientOptions, {
           rootURL: 'https://api.github.com',
-          useETags: true
+          useETags: true,
+          usePostInsteadOfPatch: false
         });
         _client = this;
         _listeners = [];
@@ -43,7 +44,7 @@
           });
         };
         _request = function(method, path, data, options) {
-          var ajaxConfig, auth, headers, mimeType, promise, xhr,
+          var ajaxConfig, auth, headers, jqXHR, mimeType, promise,
             _this = this;
           if (options == null) {
             options = {
@@ -51,6 +52,9 @@
               isBase64: false,
               isBoolean: false
             };
+          }
+          if ('PATCH' === method && clientOptions.usePostInsteadOfPatch) {
+            method = 'POST';
           }
           mimeType = void 0;
           if (options.isBase64) {
@@ -98,12 +102,12 @@
               }
             };
           }
-          xhr = jQuery.ajax(ajaxConfig);
-          xhr.always(function() {
+          jqXHR = jQuery.ajax(ajaxConfig);
+          jqXHR.always(function() {
             var listener, rateLimit, rateLimitRemaining, _i, _len, _results;
             notifyEnd(promise, path);
-            rateLimit = parseFloat(xhr.getResponseHeader('X-RateLimit-Limit'));
-            rateLimitRemaining = parseFloat(xhr.getResponseHeader('X-RateLimit-Remaining'));
+            rateLimit = parseFloat(jqXHR.getResponseHeader('X-RateLimit-Limit'));
+            rateLimitRemaining = parseFloat(jqXHR.getResponseHeader('X-RateLimit-Remaining'));
             _results = [];
             for (_i = 0, _len = _listeners.length; _i < _len; _i++) {
               listener = _listeners[_i];
@@ -111,7 +115,7 @@
             }
             return _results;
           });
-          xhr.done(function(data, textStatus, jqXHR) {
+          jqXHR.done(function(data, textStatus) {
             var converted, eTag, eTagResponse, i, _i, _ref;
             if (304 === jqXHR.status) {
               if (clientOptions.useETags && _cachedETags[path]) {
@@ -136,23 +140,27 @@
               }
               return promise.resolve(data, textStatus, jqXHR);
             }
-          }).fail(function(xhr, msg, desc) {
+          }).fail(function(unused, msg, desc) {
             var json;
-            if (options.isBoolean && 404 === xhr.status) {
+            if (options.isBoolean && 404 === jqXHR.status) {
               return promise.resolve(false);
             } else {
-              if (xhr.getResponseHeader('Content-Type') !== 'application/json; charset=utf-8') {
+              if (jqXHR.getResponseHeader('Content-Type') !== 'application/json; charset=utf-8') {
                 return promise.reject({
-                  error: xhr.responseText,
-                  status: xhr.status,
-                  _xhr: xhr
+                  error: jqXHR.responseText,
+                  status: jqXHR.status,
+                  _jqXHR: jqXHR
                 });
               } else {
-                json = JSON.parse(xhr.responseText);
+                if (jqXHR.responseText) {
+                  json = JSON.parse(jqXHR.responseText);
+                } else {
+                  json = '';
+                }
                 return promise.reject({
                   error: json,
-                  status: xhr.status,
-                  _xhr: xhr
+                  status: jqXHR.status,
+                  _jqXHR: jqXHR
                 });
               }
             }
@@ -462,6 +470,9 @@
               options.name = name;
               return _request('POST', "/orgs/" + this.name + "/repos", options);
             };
+            this.getRepos = function() {
+              return _request('GET', "/orgs/" + this.name + "/repos?type=all", null);
+            };
           }
 
           return Organization;
@@ -523,6 +534,24 @@
                 return (new jQuery.Deferred()).reject({
                   message: 'SHA_NOT_FOUND'
                 });
+              }).promise();
+            };
+            this.getContents = function(path, sha) {
+              var queryString,
+                _this = this;
+              if (sha == null) {
+                sha = null;
+              }
+              queryString = '';
+              if (sha !== null) {
+                queryString = toQueryString({
+                  ref: sha
+                });
+              }
+              return _request('GET', "" + _repoPath + "/contents/" + path + queryString, null, {
+                raw: true
+              }).then(function(contents) {
+                return contents;
               }).promise();
             };
             this.getTree = function(tree, options) {
@@ -587,10 +616,18 @@
                 return commit.sha;
               }).promise();
             };
-            this.updateHead = function(head, commit) {
-              return _request('PATCH', "" + _repoPath + "/git/refs/heads/" + head, {
+            this.updateHead = function(head, commit, force) {
+              var options;
+              if (force == null) {
+                force = false;
+              }
+              options = {
                 sha: commit
-              });
+              };
+              if (force) {
+                options.force = true;
+              }
+              return _request('PATCH', "" + _repoPath + "/git/refs/heads/" + head, options);
             };
             this.getCommit = function(sha) {
               return _request('GET', "" + _repoPath + "/commits/" + sha, null);
@@ -641,6 +678,17 @@
                 return _git.getCommits(options);
               }).promise();
             };
+            this.createBranch = function(newBranchName) {
+              var _this = this;
+              return _getRef().then(function(branch) {
+                return _git.getSha(branch, '').then(function(sha) {
+                  return _git.createRef({
+                    sha: sha,
+                    ref: "refs/heads/" + newBranchName
+                  });
+                });
+              }).promise();
+            };
             this.read = function(path, isBase64) {
               var _this = this;
               return _getRef().then(function(branch) {
@@ -650,6 +698,16 @@
                       sha: sha,
                       content: bytes
                     };
+                  });
+                });
+              }).promise();
+            };
+            this.contents = function(path) {
+              var _this = this;
+              return _getRef().then(function(branch) {
+                return _git.getSha(branch, '').then(function(sha) {
+                  return _git.getContents(path, sha).then(function(contents) {
+                    return contents;
                   });
                 });
               }).promise();
@@ -755,7 +813,7 @@
                       };
                     });
                   });
-                  return $.when.apply($, promises).then(function(newTree1, newTree2, newTreeN) {
+                  return jQuery.when.apply(jQuery, promises).then(function(newTree1, newTree2, newTreeN) {
                     var newTrees;
                     newTrees = _.toArray(arguments);
                     return _git.updateTreeMany(parentCommitShas, newTrees).then(function(tree) {
@@ -791,6 +849,9 @@
               branch: null,
               sha: null
             };
+            this.updateInfo = function(options) {
+              return _request('PATCH', this.repoPath, options);
+            };
             this.getBranches = function() {
               return this.git.getBranches();
             };
@@ -815,16 +876,28 @@
               };
               return new Branch(this.git, getRef);
             };
+            this.setDefaultBranch = function(branchName) {
+              return this.updateInfo({
+                name: _repo,
+                default_branch: branchName
+              });
+            };
             this.getInfo = function() {
               return _request('GET', this.repoPath, null);
             };
-            this.contents = function(branch, path) {
+            this.getContents = function(branch, path) {
               return _request('GET', "" + this.repoPath + "/contents?ref=" + branch, {
                 path: path
               });
             };
-            this.fork = function() {
-              return _request('POST', "" + this.repoPath + "/forks", null);
+            this.fork = function(organization) {
+              if (organization) {
+                return _request('POST', "" + this.repoPath + "/forks", {
+                  organization: organization
+                });
+              } else {
+                return _request('POST', "" + this.repoPath + "/forks", null);
+              }
             };
             this.createPullRequest = function(options) {
               return _request('POST', "" + this.repoPath + "/pulls", options);
@@ -839,7 +912,7 @@
               return _request('GET', "" + this.repoPath + "/issues/events", null);
             };
             this.getNetworkEvents = function() {
-              return _request('GET', "/networks/" + _owner + "/" + _repo + "/events", null);
+              return _request('GET', "/networks/" + _user + "/" + _repo + "/events", null);
             };
             this.getNotifications = function(options) {
               var getDate, queryString;
@@ -861,6 +934,22 @@
             this.getCollaborators = function() {
               return _request('GET', "" + this.repoPath + "/collaborators", null);
             };
+            this.addCollaborator = function(username) {
+              if (!username) {
+                throw new Error('BUG: username is required');
+              }
+              return _request('PUT', "" + this.repoPath + "/collaborators/" + username, null, {
+                isBoolean: true
+              });
+            };
+            this.removeCollaborator = function(username) {
+              if (!username) {
+                throw new Error('BUG: username is required');
+              }
+              return _request('DELETE', "" + this.repoPath + "/collaborators/" + username, null, {
+                isBoolean: true
+              });
+            };
             this.isCollaborator = function(username) {
               if (username == null) {
                 username = null;
@@ -875,7 +964,7 @@
             this.canCollaborate = function() {
               var _this = this;
               if (!(clientOptions.password || clientOptions.token)) {
-                return (new $.Deferred()).resolve(false);
+                return (new jQuery.Deferred()).resolve(false);
               }
               return _client.getLogin().then(function(login) {
                 if (!login) {
@@ -1029,6 +1118,9 @@
             name: repo
           });
         };
+        this.getOrg = function(name) {
+          return new Organization(name);
+        };
         this.getUser = function(login) {
           if (login == null) {
             login = null;
@@ -1097,12 +1189,8 @@
   } else if (this._ && this.jQuery && (this.btoa || this.Base64)) {
     encode = this.btoa || this.Base64.encode;
     Octokit = makeOctokit(this._, this.jQuery, encode);
-    if (this.Octokit == null) {
-      this.Octokit = Octokit;
-    }
-    if (this.Github == null) {
-      this.Github = Octokit;
-    }
+    this.Octokit = Octokit;
+    this.Github = Octokit;
   } else {
     err = function(msg) {
       if (typeof console !== "undefined" && console !== null) {

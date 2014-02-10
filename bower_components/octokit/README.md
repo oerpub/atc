@@ -1,8 +1,8 @@
-# octokit.js
+# octokit.js [![Build Status](https://travis-ci.org/philschatz/octokit.js.png)](https://travis-ci.org/philschatz/octokit.js)
 
 octokit.js provides a minimal higher-level wrapper around git's [plumbing commands](http://git-scm.com/book/en/Git-Internals-Plumbing-and-Porcelain),
 exposing an API for manipulating GitHub repositories, users, groups, and gists.
-It is being developed in the context of [github-book](http://github.com/philschatz/github-book), an EPUB3 editor for GitHub.
+It is being developed in the context of [github-bookeditor](http://github.com/oerpub/github-bookeditor), an EPUB3 editor for GitHub.
 
 This package can also be used in `nodejs` or as an AMD module in the browser.
 
@@ -77,6 +77,10 @@ var gh = Octokit.new({
 This file can be included using the bower package manager:
 
     bower install octokit --save
+
+## Development
+
+Mocha tests are run on NodeJS by running `npm test`. Mocha tests in the browser and code coverage are run by going to [./test/index.html](http://philschatz.github.io/octokit.js/test).
 
 
 ## Repository API
@@ -193,6 +197,20 @@ branch.remove('PATH/TO/FILE.txt', message)
 .done(function() {});
 ```
 
+Read the contents (raw) of a file or directory
+
+```js
+branch.contents('DIRECTORY/PATH')
+.done(function(contents) {});
+```
+
+or
+
+```js
+branch.contents('DIRECTORY/PATH/FILE.txt')
+.done(function(contents) {});
+```
+
 Move a file
 
 ```js
@@ -228,6 +246,13 @@ Get recent commits to a branch
 var options = {};
 branch.getCommits(options)
 .done(function(commits) {});
+```
+
+Create a new branch
+
+```js
+branch.createBranch("new-branch-name")
+.done(function() {});
 ```
 
 
@@ -477,14 +502,14 @@ For more details see jQuery's [deferred.progress documentation](http://api.jquer
 
 
 
-##Setup
+## Setup
 
-`github-client` has the following dependencies:
+`octokit.js` has the following dependencies:
 
 - Underscore
 - Base64 (for basic auth or binary files). You can leave this if you are not using basic auth or binary files.
 
-If you are not using NodeJS or requireJS include these before `github-client`:
+If you are not using NodeJS or requireJS include these before `octokit.js`:
 
 ```
 <script src="lib/underscore-min.js">
