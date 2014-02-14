@@ -180,6 +180,10 @@ require.config
 
   waitSeconds: 42
 
+  less:
+    relativeUrls: true,
+    logLevel: 1
+
 # # Load and run the application
 define ['cs!app'], (app) ->
   app.start()
