@@ -10,6 +10,7 @@ define [
   'cs!gh-book/uuid'
   'hbs!templates/gh-book/defaults/opf'
   'hbs!templates/gh-book/defaults/nav'
+  'hbs!templates/gh-book/nav-metadata'
 ], (
   Backbone,
   mediaTypes,
@@ -21,7 +22,9 @@ define [
   TocPointerNode,
   uuid,
   defaultOpf,
-  defaultNav) ->
+  defaultNav,
+  navMetadata
+) ->
 
   SAVE_DELAY = 10 # ms
 
@@ -34,9 +37,15 @@ define [
 
     branch: true # This element will show up in the sidebar listing
 
+    addAction: =>
+      @triggerMetadataEdit()
+
+    triggerMetadataEdit: =>
+      require ['cs!views/layouts/workspace/bookshelf'], (Bookshelf) =>
+        Bookshelf::editBook(@)
+
     initialize: (options) ->
       options.root = @
-
 
       @$xml = $($.parseXML defaultOpf(options))
 
@@ -84,6 +93,158 @@ define [
         if value != $title.text()
           $title.text(value)
           @_save()
+
+      tagHelper = (tagName, value, attributes, skipSave) =>
+        return if not value
+
+        container = @$xml.find('metadata')
+        selector = tagName.replace(':', '\\:')
+
+        element = @$xml[0].createElement(tagName)
+
+        _.forIn attributes, (value, key) ->
+          selector += "[#{key.replace(':', '\\:')}=\"#{value}\"]"
+          element.setAttributeNS('http://www.idpf.org/2007/opf', key, value)
+
+        container.find(selector).remove()
+
+        container.append('    ')
+        element.textContent = value
+        container[0].appendChild(element)
+        container.append('\n')
+        if not skipSave
+          setNavModel({})
+          @_save()
+      if @_isNew
+        now = new Date()
+        @set('datePublished', "#{now.getFullYear()}-#{now.getMonth()+1}-#{now.getDate()}")
+        tagHelper(
+          'date',
+          @get('datePublished'),
+          {'opf:event': 'publication'},
+          true
+        )
+          
+      @on 'change:language', (model, value, options) =>
+        tagHelper('dc:language', value, {'xsi:type': "dcterms:RFC4646"}) unless options.doNotUpdate
+      @on 'change:description', (model, value, options) =>
+        tagHelper('dc:description', value) unless options.doNotUpdate
+      @on 'change:rights', (model, value, options) =>
+        tagHelper('dc:rights', value) unless options.doNotUpdate
+
+      metaHelper = (value, attributes) =>
+        tagHelper('meta', value, attributes)
+
+      @on 'change:rightsUrl', (model, value, options) =>
+        metaHelper(value, {property: "lrmi:useRightsUrl"}) unless options.doNotUpdate
+      @on 'change:dateModified', (model, value, options) =>
+        metaHelper(value, {properties: "dcterms:modified"}) unless options.doNotUpdate
+
+      tagGroupHelper = (tagName, values, attributes) =>
+        # make sure we actually have content
+        return if not values.length
+
+        container = @$xml.find('metadata')
+        selector = tagName.replace(':', '\\:')
+        template = @$xml[0].createElement(tagName)
+ 
+        _.forIn attributes, (value, key) ->
+          selector += "[#{key.replace(':', '\\:')}=\"#{value}\"]"
+          template.setAttributeNS('http://www.idpf.org/2007/opf', key, value)
+
+        existing = @$xml.find(selector).remove()
+
+        _.each values, (value) ->
+          element = template.cloneNode()
+          container.append('    ')
+          element.textContent = value
+          container[0].appendChild(element)
+          container.append('\n')
+
+        setNavModel({})
+        @_save()
+
+      @on 'change:subject', (model, value, options) =>
+        tagGroupHelper(
+          'dc:subject',
+          value,
+          {'xsi:type': "http://github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"}
+        ) unless options.doNotUpdate
+      @on 'change:rightsHolders', (model, value, options) =>
+        tagGroupHelper(
+          'meta',
+          value,
+          {property: "dcterms:rightsHolder"}
+        ) unless options.doNotUpdate
+      @on 'change:keywords', (model, value, options) =>
+        # make sure we actually have content
+        return if not value.length or options.doNotUpdate
+
+        container = @$xml.find('metadata')
+        template = "<dc:subject></dc:subject>"
+        @$xml.find('dc\\:subject').not('[xsi\\:type="http://github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"]').remove()
+
+        _.each(value, (keyword) ->
+          container.append('    ')
+          $(template).text(keyword).appendTo(container)
+          container.append('\n')
+        )
+
+        setNavModel({})
+        @_save()
+
+      creatorHelper = (type, shortType, creators) =>
+
+        # make sure we actually have content
+        creators = creators.filter (i) -> i
+        return if not creators.length
+
+        # remove the existing ones so we don't get dupes
+        @$xml.find('dc\\:creator[id^="'+type+'"]').remove()
+        @$xml.find('meta[refines^="#'+type+'"]').remove()
+
+        container = @$xml.find('metadata')
+
+        template = @$xml[0].createElement('dc:creator')
+
+        refinesTemplate = "<meta refines=\"##{type}\" property=\"role\" scheme=\"marc:relators\"></meta>"
+
+        i = 1
+        _.each(creators, (creator) ->
+          id = type + '-' + i++
+
+          # coffeescript's regex parser is dumb and needs the character
+          # class for that leading space
+          fileAs = creator.split(/[ ](?=[^ ]+$)/).reverse().join(', ')
+
+          container.append('    ')
+          newCreator = template.cloneNode()
+          newCreator.setAttribute('id', id)
+          newCreator.setAttributeNS('http://www.idpf.org/2007/opf', 'opf:file-as', fileAs)
+          newCreator.textContent = creator
+          container[0].appendChild(newCreator)
+
+          container.append('\n    ')
+          $(refinesTemplate)
+            .attr('refines', '#' + id)
+            .text(shortType)
+            .appendTo(container)
+          container.append('\n')
+        )
+        
+        setNavModel({})
+        @_save()
+
+      @on 'change:authors', (model, value, options) =>
+        creatorHelper('author', 'aut', value) unless options.doNotUpdate
+      @on 'change:publishers', (model, value, options) =>
+        creatorHelper('publisher', 'pbl', value) unless options.doNotUpdate
+      @on 'change:editors', (model, value, options) =>
+        creatorHelper('editor', 'edt', value) unless options.doNotUpdate
+      @on 'change:translators', (model, value, options) =>
+        creatorHelper('translator', 'trl', value) unless options.doNotUpdate
+      @on 'change:illustrators', (model, value, options) =>
+        creatorHelper('illustrator', 'ill', value) unless options.doNotUpdate
 
       # When a title changes on one of the nodes in the ToC:
       #
@@ -290,10 +451,13 @@ define [
       @_markDirty({}) if start != @serialize()
 
     _serializeNavModel: () ->
-      $body = $(@navModel.get 'body')
-      $wrapper = $('<div></div>').append $body
+      $wrapper = $('<div></div>')
+
+      $wrapper
+        .append(navMetadata(@toJSON()))
+        .append('<nav></nav>')
+
       $nav = $wrapper.find 'nav'
-      $nav.empty()
 
       $navOl = $('<ol></ol>')
 
@@ -359,6 +523,23 @@ define [
       # title if you just use jQuery.find().
       titles = @$xml[0].querySelectorAll('title')
       title = titles.length and $(titles[0]).text() or ''
+
+      # read out metadata
+      @set {
+        language: @$xml.find('language[xsi\\:type="dcterms:RFC4646"]').text()
+        description: @$xml.find('description').text()
+        rights: @$xml.find('rights').text()
+        rightsUrl: @$xml.find('meta[property="lrmi:useRightsUrl"]').text()
+        dateModified: @$xml.find('meta[properties="dcterms:modified"]').text()
+        subject: $.makeArray @$xml.find('subject[xsi\\:type="http://github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"]').map((i, el) -> $(el).text())
+        rightsHolders: $.makeArray @$xml.find('meta[property="dcterms:rightsHolder"]').map((i, el) -> $(el).text())
+        keywords: $.makeArray @$xml.find('subject').not('[xsi\\:type="http://github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"]').map((i, el) -> $(el).text())
+        authors: $.makeArray @$xml.find('meta[property="role"]:contains(aut)').map((i, el) => @$xml.find($(el).attr('refines')).text())
+        publishers: $.makeArray @$xml.find('meta[property="role"]:contains(pbl)').map((i, el) => @$xml.find($(el).attr('refines')).text())
+        editors: $.makeArray @$xml.find('meta[property="role"]:contains(edt)').map((i, el) => @$xml.find($(el).attr('refines')).text())
+        translators: $.makeArray @$xml.find('meta[property="role"]:contains(trl)').map((i, el) => @$xml.find($(el).attr('refines')).text())
+        illustrators: $.makeArray @$xml.find('meta[property="role"]:contains(ill)').map((i, el) => @$xml.find($(el).attr('refines')).text())
+        }, {doNotUpdate: true}
 
       # The manifest contains all the items in the spine
       # but the spine element says which order they are in
