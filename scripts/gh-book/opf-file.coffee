@@ -53,6 +53,7 @@ define [
       if not @id
         @setNew()
         @id = "content/#{uuid(@get('title'))}.opf"
+        @$xml.find('#uid').text(uuid(@get('title')))
 
      # For TocNode, let it know this is the root
       super options
@@ -115,6 +116,7 @@ define [
         if not skipSave
           setNavModel({})
           @_save()
+
       if @_isNew
         now = new Date()
         @set('datePublished', "#{now.getFullYear()}-#{now.getMonth()+1}-#{now.getDate()}")
