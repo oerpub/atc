@@ -1,0 +1,25 @@
+    <title>{{ title }}</title>
+    {{#if language }}<meta itemprop="inLanguage" content="{{ language }}" />{{/if}}
+    {{#if rights }}<meta property="dc:license" content="{{ rights }}" />{{/if}}
+    {{#if rightsUrl }}<meta property="lrmi:useRightsUrl" content="{{ rightsUrl }}" />{{/if}}
+    {{#if dateModified }}<meta itemprop="dateModified" content="{{ dateModified }}" />{{/if}}
+    {{#if datePublished }}<meta itemprop="dateCreated" content="{{ datePublished }}" />{{/if}}
+    {{#each subject}}<meta itemprop="about" content="{{ this }}" />
+    {{/each}}
+    {{#each keywords}}<meta itemprop="keywords" content="{{ this }}" />
+    {{/each}}
+    {{#each rightsHolders}}<meta itemprop="copyrightHolder" content="{{ this }}" />
+    {{/each}}
+    {{#each editors }}<meta itemprop="editor" content="{{ this }}" />
+    {{/each}}
+    {{#each translators }}<meta id="translator{{@key }}" itemprop="contributor" content="{{ this }}"/>
+    <meta refines="#translator{{@key }}" property="role" scheme="marc:relators" content="trl" />
+    {{/each}}
+    {{#each illustrators }}<meta itemprop="illustrator" content="{{ this }}" />
+    {{/each}}
+
+    <h1 itemprop="name">{{ title }}</h1>
+    {{#if authors }}<span class="authors">By: {{#each authors }}{{#if @index }}, {{/if}}<span itemprop="author">{{ this }}</span>{{/each}}</span>{{/if}}
+    {{#if publishers }}<span class="publisher">Published By: {{#each publishers }}{{#if @index }}, {{/if}}<span itemprop="publisher">{{ this }}</span>{{/each}}</span>{{/if}}
+    {{#if description }}<p itemprop="description">{{ description }}</p>{{/if}}
+    <h1>Table of Contents</h1>
