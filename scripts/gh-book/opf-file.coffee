@@ -71,9 +71,7 @@ define [
       # This way we can ignore firing events when Backbone is parsing as well as
       # when we are internally updating models.
       setNavModel = (options) =>
-        console.log 'here'
         if not options.doNotReparse
-          console.log 'here2'
           options.doNotReparse = true
           @navModel.set 'head', @_serializeNavModelHead(), options
           @navModel.set 'body', @_serializeNavModelBody(), options
