@@ -33,6 +33,7 @@ define [
 
     initialize: () ->
       # When a model has changed (triggered `dirty`) update the Save button
+
       @listenTo allContent, 'change:_isDirty', (model, value, options) =>
         if value
           @setDirty()
@@ -115,6 +116,7 @@ define [
 
     # Show a diff of all unsaved models
     showDiffsModal: () ->
+
       $modal = @$el.find('#diffs-modal')
 
       $body = $modal.find('.modal-body').empty()
@@ -342,7 +344,13 @@ define [
                 newRepo.getBranch('gh-pages').writeMany(files).done ->
 
                   # go there
-                  auth._selectRepo(bookOwnerName, bookName)
+                  auth._selectRepo(bookOwnerName, bookName).done ->
+
+                    # once it loads, open the book metadata modal
+                    require ['cs!gh-book/epub-container', 'cs!gh-book/opf-file'], (epubContainer, opfFile) ->
+                      epubContainer::instance().load().done ->
+                        allContent.findWhere({mediaType: opfFile.prototype.mediaType}).load().done ->
+                          opf.triggerMetadataEdit()
           .fail ->
             auth.$el.find('[data-repo-missing]').hide()
             auth.$el.find('[data-error-creating]').show()
@@ -379,8 +387,8 @@ define [
       # Wait until the remoteUpdater has stopped so the settings object does not
       # switch mid-way while updating
       auth = @
+      promise = new $.Deferred()
       remoteUpdater.stop().always () ->
-
         branchName = '' # means default branch
 
         # First check validity of the new repo details. Do this by attempting
@@ -391,6 +399,7 @@ define [
         branch.read('META-INF/container.xml').fail () ->
           auth.$el.find('[data-repo-missing]').show()
           auth.editRepoModal()
+          promise.reject()
         .then () ->
           # Silently clear the settings first. This forces a reload even if
           # the user leaves the settings unchanged.  The reason for
@@ -403,3 +412,6 @@ define [
           remoteUpdater.start().done () =>
             auth.trigger 'close'
             auth.model.trigger 'settings-changed'
+            promise.resolve()
+
+      promise

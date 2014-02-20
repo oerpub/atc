@@ -10,7 +10,8 @@ define [
   'cs!gh-book/uuid'
   'hbs!templates/gh-book/defaults/opf'
   'hbs!templates/gh-book/defaults/nav'
-  'hbs!templates/gh-book/nav-metadata'
+  'hbs!templates/gh-book/nav-body-metadata'
+  'hbs!templates/gh-book/nav-head-metadata'
 ], (
   Backbone,
   mediaTypes,
@@ -23,7 +24,8 @@ define [
   uuid,
   defaultOpf,
   defaultNav,
-  navMetadata
+  navBodyMetadata,
+  navHeadMetadata
 ) ->
 
   SAVE_DELAY = 10 # ms
@@ -53,6 +55,7 @@ define [
       if not @id
         @setNew()
         @id = "content/#{uuid(@get('title'))}.opf"
+        @$xml.find('#uid').text(uuid(@get('title')))
 
      # For TocNode, let it know this is the root
       super options
@@ -70,7 +73,8 @@ define [
       setNavModel = (options) =>
         if not options.doNotReparse
           options.doNotReparse = true
-          @navModel.set 'body', @_serializeNavModel(), options
+          @navModel.set 'head', @_serializeNavModelHead(), options
+          @navModel.set 'body', @_serializeNavModelBody(), options
 
           # if we're updating the nav the spine also probably needs to be updated
           @_buildSpine()
@@ -98,7 +102,9 @@ define [
         return if not value
 
         container = @$xml.find('metadata')
-        selector = tagName.replace(':', '\\:')
+
+        # remove any namespace on the tagname so jquery will work
+        selector = tagName.replace(/.*:/, '')
 
         element = @$xml[0].createElement(tagName)
 
@@ -115,6 +121,7 @@ define [
         if not skipSave
           setNavModel({})
           @_save()
+
       if @_isNew
         now = new Date()
         @set('datePublished', "#{now.getFullYear()}-#{now.getMonth()+1}-#{now.getDate()}")
@@ -145,7 +152,10 @@ define [
         return if not values.length
 
         container = @$xml.find('metadata')
-        selector = tagName.replace(':', '\\:')
+
+        # remove any namespace on the tagname so jquery will work
+        selector = tagName.replace(/.*:/, '')
+
         template = @$xml[0].createElement(tagName)
  
         _.forIn attributes, (value, key) ->
@@ -182,7 +192,7 @@ define [
 
         container = @$xml.find('metadata')
         template = "<dc:subject></dc:subject>"
-        @$xml.find('dc\\:subject').not('[xsi\\:type="http://github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"]').remove()
+        @$xml.find('subject').not('[xsi\\:type="http://github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"]').remove()
 
         _.each(value, (keyword) ->
           container.append('    ')
@@ -200,7 +210,7 @@ define [
         return if not creators.length
 
         # remove the existing ones so we don't get dupes
-        @$xml.find('dc\\:creator[id^="'+type+'"]').remove()
+        @$xml.find('creator[id^="'+type+'"]').remove()
         @$xml.find('meta[refines^="#'+type+'"]').remove()
 
         container = @$xml.find('metadata')
@@ -450,12 +460,12 @@ define [
 
       @_markDirty({}) if start != @serialize()
 
-    _serializeNavModel: () ->
-      $wrapper = $('<div></div>')
+    _serializeNavModelHead: () ->
+      return navHeadMetadata(@toJSON())
 
-      $wrapper
-        .append(navMetadata(@toJSON()))
-        .append('<nav></nav>')
+    _serializeNavModelBody: () ->
+      $wrapper = $('<div></div>')
+      $wrapper.append('<nav></nav>')
 
       $nav = $wrapper.find 'nav'
 
@@ -492,7 +502,7 @@ define [
       # Trim the HTML and put newlines between elements
       html =  $wrapper.html()
       html = html.replace(/></g, '>\n<')
-      return html
+      return navBodyMetadata(@toJSON()) + html
 
 
     parse: (json) ->
