@@ -349,7 +349,8 @@ define [
                     # once it loads, open the book metadata modal
                     require ['cs!gh-book/epub-container', 'cs!gh-book/opf-file'], (epubContainer, opfFile) ->
                       epubContainer::instance().load().done ->
-                        allContent.findWhere({mediaType: opfFile.prototype.mediaType}).load().done ->
+                        opf = allContent.findWhere({mediaType: opfFile.prototype.mediaType})
+                        opf.load().done ->
                           opf.triggerMetadataEdit()
           .fail ->
             auth.$el.find('[data-repo-missing]').hide()
