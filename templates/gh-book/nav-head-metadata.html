@@ -1,0 +1,19 @@
+    <title>{{ title }}</title>
+    {{#if language }}<meta itemprop="inLanguage" content="{{ language }}"></meta>{{/if}}
+    {{#if rights }}<meta property="dc:license" content="{{ rights }}"></meta>{{/if}}
+    {{#if rightsUrl }}<meta property="lrmi:useRightsUrl" content="{{ rightsUrl }}"></meta>{{/if}}
+    {{#if dateModified }}<meta itemprop="dateModified" content="{{ dateModified }}"></meta>{{/if}}
+    {{#if datePublished }}<meta itemprop="dateCreated" content="{{ datePublished }}"></meta>{{/if}}
+    {{#each subject}}<meta itemprop="about" content="{{ this }}"></meta>
+    {{/each}}
+    {{#each keywords}}<meta itemprop="keywords" content="{{ this }}"></meta>
+    {{/each}}
+    {{#each rightsHolders}}<meta itemprop="copyrightHolder" content="{{ this }}"></meta>
+    {{/each}}
+    {{#each editors }}<meta itemprop="editor" content="{{ this }}"></meta>
+    {{/each}}
+    {{#each translators }}<meta id="translator{{@key }}" itemprop="contributor" content="{{ this }}"></meta>
+    <meta refines="#translator{{@key }}" property="role" scheme="marc:relators" content="trl"></meta>
+    {{/each}}
+    {{#each illustrators }}<meta itemprop="illustrator" content="{{ this }}"></meta>
+    {{/each}}
