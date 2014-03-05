@@ -72,7 +72,7 @@ define [
       # when we are internally updating models.
       setNavModel = (options) =>
         if not options.doNotReparse
-          options.doNotReparse = true
+          options = $.extend({doNotReparse: true}, options)
           @navModel.set 'head', @_serializeNavModelHead(), options
           @navModel.set 'body', @_serializeNavModelBody(), options
 
@@ -273,8 +273,9 @@ define [
       @getChildren().on 'add remove tree:change tree:add tree:remove', (model, collection, options) =>
         setNavModel(options)
       @getChildren().on 'change reset', (collection, options) =>
-        # HACK: `?` is because `inherits/container.add` calls `trigger('change')`
-        setNavModel(options)
+        model = collection.dereferencePointer?() or collection
+        if not _.isEmpty _.omit model.changedAttributes?(), ['_selected']
+          setNavModel(options)
 
       @manifest.on 'add', (model, collection, options) => @_addItem(model, options)
 
