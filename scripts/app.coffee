@@ -164,18 +164,23 @@ define [
         promise.resolve(val)
       )
       .fail (err) =>
-        # Probably a conflict because of a remote change.
+        # Possibly a conflict because of a remote change.
         # Resolve the changes and save again
         #
         # Reload all the models (merging local changes along the way)
         # and, at the same time get the new lastSeenSha
-        remoteUpdater.pollUpdates().then () =>
-          # Probably a patch/cache problem.
-          # Clear the cache and try again
-          session.getClient().clearCache?()
-          writeFiles(models, commitText)
-          .fail((err) => promise.reject(err))
-          .done (val) => promise.resolve(val)
+        # TODO: Not sure what code gihub sends back for a conflict, but it's
+        # gotta be one of these.
+        if err.status == 422 or err.status == 409
+          remoteUpdater.pollUpdates().then () =>
+            # Probably a patch/cache problem.
+            # Clear the cache and try again
+            session.getClient().clearCache?()
+            writeFiles(models, commitText)
+            .fail((err) => promise.reject(err))
+            .done (val) => promise.resolve(val)
+        else
+          promise.reject(err)
 
       return promise
 
