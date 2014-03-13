@@ -1,5 +1,6 @@
 define [
   'backbone'
+  'jquery'
   'cs!collections/media-types'
   'cs!collections/content'
   'cs!mixins/loadable'
@@ -14,6 +15,7 @@ define [
   'hbs!templates/gh-book/nav-head-metadata'
 ], (
   Backbone,
+  $,
   mediaTypes,
   allContent,
   loadable,
@@ -133,19 +135,19 @@ define [
         )
           
       @on 'change:language', (model, value, options) =>
-        tagHelper('dc:language', value, {'xsi:type': "dcterms:RFC4646"}) unless options.doNotUpdate
+        tagHelper('dc:language', value, {'xsi:type': "dcterms:RFC4646"}) unless options.parse
       @on 'change:description', (model, value, options) =>
-        tagHelper('dc:description', value) unless options.doNotUpdate
+        tagHelper('dc:description', value) unless options.parse
       @on 'change:rights', (model, value, options) =>
-        tagHelper('dc:rights', value) unless options.doNotUpdate
+        tagHelper('dc:rights', value) unless options.parse
 
       metaHelper = (value, attributes) =>
         tagHelper('meta', value, attributes)
 
       @on 'change:rightsUrl', (model, value, options) =>
-        metaHelper(value, {property: "lrmi:useRightsUrl"}) unless options.doNotUpdate
+        metaHelper(value, {property: "lrmi:useRightsUrl"}) unless options.parse
       @on 'change:dateModified', (model, value, options) =>
-        metaHelper(value, {properties: "dcterms:modified"}) unless options.doNotUpdate
+        metaHelper(value, {properties: "dcterms:modified"}) unless options.parse
 
       tagGroupHelper = (tagName, values, attributes) =>
         # make sure we actually have content
@@ -179,16 +181,16 @@ define [
           'dc:subject',
           value,
           {'xsi:type': "http://github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"}
-        ) unless options.doNotUpdate
+        ) unless options.parse
       @on 'change:rightsHolders', (model, value, options) =>
         tagGroupHelper(
           'meta',
           value,
           {property: "dcterms:rightsHolder"}
-        ) unless options.doNotUpdate
+        ) unless options.parse
       @on 'change:keywords', (model, value, options) =>
         # make sure we actually have content
-        return if not value.length or options.doNotUpdate
+        return if not value.length or options.parse
 
         container = @$xml.find('metadata')
         template = "<dc:subject></dc:subject>"
@@ -246,15 +248,15 @@ define [
         @_save()
 
       @on 'change:authors', (model, value, options) =>
-        creatorHelper('author', 'aut', value) unless options.doNotUpdate
+        creatorHelper('author', 'aut', value) unless options.parse
       @on 'change:publishers', (model, value, options) =>
-        creatorHelper('publisher', 'pbl', value) unless options.doNotUpdate
+        creatorHelper('publisher', 'pbl', value) unless options.parse
       @on 'change:editors', (model, value, options) =>
-        creatorHelper('editor', 'edt', value) unless options.doNotUpdate
+        creatorHelper('editor', 'edt', value) unless options.parse
       @on 'change:translators', (model, value, options) =>
-        creatorHelper('translator', 'trl', value) unless options.doNotUpdate
+        creatorHelper('translator', 'trl', value) unless options.parse
       @on 'change:illustrators', (model, value, options) =>
-        creatorHelper('illustrator', 'ill', value) unless options.doNotUpdate
+        creatorHelper('illustrator', 'ill', value) unless options.parse
 
       # When a title changes on one of the nodes in the ToC:
       #
@@ -536,7 +538,7 @@ define [
       title = titles.length and $(titles[0]).text() or ''
 
       # read out metadata
-      @set {
+      metadata = {
         language: @$xml.find('language[xsi\\:type="dcterms:RFC4646"]').text()
         description: @$xml.find('description').text()
         rights: @$xml.find('rights').text()
@@ -550,7 +552,7 @@ define [
         editors: $.makeArray @$xml.find('meta[property="role"]:contains(edt)').map((i, el) => @$xml.find($(el).attr('refines')).text())
         translators: $.makeArray @$xml.find('meta[property="role"]:contains(trl)').map((i, el) => @$xml.find($(el).attr('refines')).text())
         illustrators: $.makeArray @$xml.find('meta[property="role"]:contains(ill)').map((i, el) => @$xml.find($(el).attr('refines')).text())
-        }, {doNotUpdate: true}
+        }
 
       # The manifest contains all the items in the spine
       # but the spine element says which order they are in
@@ -588,10 +590,10 @@ define [
 
       # Ignore the spine because it is defined by the navTree in EPUB3.
       # **TODO:** Fall back on `toc.ncx` and then the `spine` to create a navTree if one does not exist
-      return {
+      return $.extend {
         title: title
         bookId: bookId
-      }
+      }, metadata
 
     serialize: () ->
       serializer.serializeToString(@$xml[0])
