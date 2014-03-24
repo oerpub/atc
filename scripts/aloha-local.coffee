@@ -1,2 +1,4 @@
-define ['cs!configs/aloha'], (AlohaConfig) ->
-  AlohaConfig.settings.bundles.ghbook = '../../../bookish/scripts/aloha'
+define ['jquery', 'cs!configs/aloha'], ($, AlohaConfig) ->
+
+  $.extend AlohaConfig.settings.bundles,
+    ghbook: '../../../bookish/scripts/aloha'
