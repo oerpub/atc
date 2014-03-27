@@ -26,6 +26,7 @@ require.config
     'collections/content': 'gh-book/content'
     'views/workspace/menu/auth': 'gh-book/auth'
     'styles/gh-book': '../styles/gh-book'
+    'templates/workspace/menu/toolbar-aloha': '../templates/gh-book/toolbar-aloha'
 
     jsSHA: "#{BOWER}/jsSHA/src/sha_dev" # Calculate the sha1 hash for resources
     'filtered-collection': "#{BOWER}/filtered-collection/vendor/assets/javascripts/backbone-filtered-collection"
