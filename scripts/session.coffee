@@ -1,4 +1,4 @@
-define ['underscore', 'jquery', 'backbone', 'github'], (_, $, Backbone, Github) ->
+define ['underscore', 'jquery', 'backbone', 'octokit'], (_, $, Backbone, Github) ->
 
   ROOT_URL = undefined # 'http://localhost:3000'
 
@@ -98,7 +98,7 @@ define ['underscore', 'jquery', 'backbone', 'github'], (_, $, Backbone, Github) 
 
     writeHistory: (user, name, branch) ->
       history = @getHistory()
-      
+
       history = _.filter history, (item) ->
         item.repoUser != user || item.repoName != name
 
@@ -107,7 +107,7 @@ define ['underscore', 'jquery', 'backbone', 'github'], (_, $, Backbone, Github) 
         repoName: name
         branch: branch
       })
- 
+
       localStorage.oerRepoHistory = JSON.stringify(
         history.slice(0,@repoHistoryLength)
       )
