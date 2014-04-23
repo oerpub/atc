@@ -22,7 +22,7 @@ require.config
 
 
     # Change some of the models for the Application to use github and EPUB
-    github: "#{BOWER}/octokit/octokit"
+    octokit: "#{BOWER}/octokit/octokit"
     'collections/content': 'gh-book/content'
     'views/workspace/menu/auth': 'gh-book/auth'
     'styles/gh-book': '../styles/gh-book'

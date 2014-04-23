@@ -1,4 +1,4 @@
-define ['underscore', 'jquery', 'backbone', 'github'], (_, $, Backbone, Github) ->
+define ['underscore', 'jquery', 'backbone', 'octokit'], (_, $, Backbone, Github) ->
 
   ROOT_URL = undefined # 'http://localhost:3000'
 
