@@ -4,6 +4,7 @@ define ['jquery', 'cs!configs/aloha'], ($, AlohaConfig) ->
     ghbook: '../../../bookish/scripts/aloha'
 
   # Add plugins
+  AlohaConfig.settings.plugins.load.push 'common/dom-to-xhtml'
   AlohaConfig.settings.plugins.load.push 'common/horizontalruler'
   AlohaConfig.settings.plugins.load.push 'oer/workarea'
 
