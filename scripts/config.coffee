@@ -22,7 +22,7 @@ require.config
 
 
     # Change some of the models for the Application to use github and EPUB
-    github: "#{BOWER}/octokit/octokit"
+    octokit: "#{BOWER}/octokit/octokit"
     'collections/content': 'gh-book/content'
     'views/workspace/menu/auth': 'gh-book/auth'
     'styles/gh-book': '../styles/gh-book'
@@ -35,7 +35,7 @@ require.config
     diffview: "#{BOWER}/jsdifflib/diffview"
 
 
-    mathjax: 'http://cdn.mathjax.org/mathjax/2.0-latest/MathJax.js?config=TeX-MML-AM_HTMLorMML-full&amp;delayStartupUntil=configured'
+    mathjax: '//cdn.mathjax.org/mathjax/2.0-latest/MathJax.js?config=TeX-MML-AM_HTMLorMML-full&amp;delayStartupUntil=configured'
 
     # ## Template path
     'templates/gh-book': '../templates/gh-book'
