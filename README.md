@@ -81,7 +81,7 @@ need. You will need coffee script and lessc if you're going to hack on the
 Aloha code.
 
     npm install -g coffee-script
-    npm install -g lessc
+    npm install -g less
 
 #### Installing the book editor
 
