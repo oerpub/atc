@@ -1,5 +1,6 @@
 define [
   'jquery'
+  'underscore'
   'marionette'
   'cs!collections/content'
   'cs!session'
@@ -10,7 +11,7 @@ define [
   'cs!configs/github'
   'bootstrapModal'
   'bootstrapCollapse'
-], ($, Marionette, allContent, session, remoteUpdater, authTemplate, difflib, diffview, config) ->
+], ($, _, Marionette, allContent, session, remoteUpdater, authTemplate, difflib, diffview, config) ->
 
   return class GithubAuthView extends Marionette.ItemView
     template: authTemplate
@@ -25,11 +26,14 @@ define [
       'click #show-diffs': 'showDiffsModal'
       'submit #edit-repo-form': 'editRepo'
       'click [data-select-repo]': 'selectRepo'
+      'click #fork-book-modal .organisation-block': 'selectOrg'
+      'click #fork-redirect-modal .btn-primary': 'selectFork'
       'click [data-create-repo]': 'createRepo'
       'shown #edit-repo-modal': 'createRepoModal'
 
     initialize: () ->
       # When a model has changed (triggered `dirty`) update the Save button
+
       @listenTo allContent, 'change:_isDirty', (model, value, options) =>
         if value
           @setDirty()
@@ -77,20 +81,42 @@ define [
       @isDirty = true
       @render()
 
-    signInModal: () ->
+    signInModal: (options) ->
       $modal = @$el.find('#sign-in-modal')
 
       # The hidden event on #login-advanced should not propagate
       $modal.find('#login-advanced').on 'hidden', (e) => e.stopPropagation()
 
+      # We'll return a promise, and resolve it upon login or close.
+      promise = $.Deferred()
+      $modal.data('login-promise', promise)
+
       # attach a close listener
-      $modal.on 'hidden', () => @trigger 'close'
+      $modal.on 'hidden', () =>
+        if promise.state() == 'pending'
+          promise.reject()
+        @trigger 'close'
+
+      # Hide parts of the modal, if requested, for a simpler UI.
+      if options
+        if options.anonymous != undefined and options.anonymous == false
+          $modal.find('#login-anonymous').hide()
+        else
+          $modal.find('#login-anonymous').show()
+
+        if options.info != undefined and options.info == false
+          $modal.find('#login-info-wrapper').hide()
+        else
+          $modal.find('#login-info-wrapper').show()
 
       # Show the modal
       $modal.modal {show:true}
 
+      return promise
+
     # Show a diff of all unsaved models
     showDiffsModal: () ->
+
       $modal = @$el.find('#diffs-modal')
 
       $body = $modal.find('.modal-body').empty()
@@ -134,17 +160,97 @@ define [
       $modal.modal {show:true}
 
 
+    organisationModal: (info, orgs) ->
+      $modal = @$el.find('#fork-book-modal')
+      $body = $modal.find('.modal-body').empty()
+
+      # Own account
+      $block = $('<div class="organisation-block"></div>')
+      $avatar = $('<img alt="avatar">').attr('src', info.avatar_url)
+      $name = $('<span>').html(info.login)
+      $block.append($avatar).append($name).data('org-name', info.login)
+      $body.append($block)
+      for org in orgs
+        $block = $('<div class="organisation-block"></div>')
+        $avatar = $('<img alt="avatar">').attr('src', org.avatar_url)
+        $name = $('<span>').html(org.login)
+        $block.append($avatar).append($name).data('org-name', org.login)
+        $body.append($block)
+
+      $modal.modal {show:true}
+
+    selectOrg: (e) ->
+      $block = $(e.target).addBack().closest('.organisation-block')
+      org = $block.data('org-name') or null
+      @$el.find('#fork-book-modal').modal('hide')
+      @__forkContent(org)
+
+    selectFork: (e) ->
+      e.preventDefault()
+      login = @$el.find('#fork-redirect-modal').modal('hide').data('login')
+      @_selectRepo(login, @model.get('repoName'))
+
     forkContent: () ->
-
       if not (@model.get('password') or @model.get('token'))
-        alert 'Please Sign In before trying to fork a book'
+        @signInModal
+          anonymous: false
+          info: false
+        .done () => @_forkContent()
         return
+      @_forkContent()
 
-      @model.getClient().getLogin().done (login) =>
-        @model.getRepo()?.fork().done () =>
-          @model.set 'repoUser', login
+    _forkContent: () ->
+      # If user has more than one organisation, ask which one.
+      @model.getClient().getUser().getInfo().done (userinfo) =>
+        @model.getClient().getUser().getOrgs().done (orgs) =>
+          if orgs.length > 1
+            @organisationModal(userinfo, orgs)
+          else
+            @__forkContent(userinfo.login)
 
-    
+    __forkContent: (login) ->
+      # If repo exists, go to it or cancel. Else fork. 
+      @model.getClient().getRepo(login, @model.get('repoName')).getInfo().done () =>
+        @$el.find('#fork-redirect-modal').data('login', login).modal
+          show: true
+      .fail () =>
+        @___forkContent(login)
+
+    ___forkContent: (org) ->
+      $modal = @$el.find('#fork-progress-modal')
+      $body = $modal.find('.modal-body')
+      $body.html('Creating a Fork...')
+      $modal.modal {show: true}
+
+      # If the chosen organisation is myself, leave it out.
+      @model.getRepo()?.fork(org != @model.get('id') and org or null).done () =>
+        $body.html('Waiting for Fork to become available...')
+
+        # Change upstream repo
+        wait = 2000
+        @model.set 'repoUser', org
+
+        # Poll until repo becomes available
+        pollRepo = () =>
+          @model.getRepo()?.getInfo().done (info) =>
+            require ['backbone', 'cs!controllers/routing'], (bb, controller) =>
+              # Filter out the view bit, then set the url to reflect the fork
+              v = RegExp('repo/[^/]*/[^/]*(/branch/[^/]*)?/(.*)').exec(
+                bb.history.getHash())[2]
+              controller.trigger 'navigate', v
+          .fail () =>
+            if wait < 30
+              setTimeout(pollRepo, wait)
+              wait = wait * 2 # exponential backoff
+            else
+              alert('Fork failed')
+          .always () =>
+            # Leave it open for another two seconds, because sometimes
+            # the fork happens so quickly that people are unnerved by
+            # the flashing modal they couldn't read.
+            window.setTimeout((() -> $modal.modal('hide')), 2000)
+        pollRepo()
+            
 
     signIn: (e) ->
       # Prevent form submission
@@ -156,6 +262,9 @@ define [
         token:    @$el.find('#github-token').val()
         password: @$el.find('#github-password').val()
 
+      # signInModal persists the promise on the modal
+      promise = @$el.find('#sign-in-modal').data('login-promise')
+
       if not (attrs.password or attrs.token)
         alert 'We are terribly sorry but github recently changed so you must login to use their API.\nPlease refresh and provide a password or an OAuth token.'
       else
@@ -166,6 +275,7 @@ define [
           # The 1st time the editor loads up it waits for the modal to close
           # but `render` will hide the modal without triggering 'close'
           @trigger 'close'
+          promise.resolve()
         .fail (err) =>
           alert 'Login failed. Did you use the correct credentials?'
 
@@ -234,7 +344,14 @@ define [
                 newRepo.getBranch('gh-pages').writeMany(files).done ->
 
                   # go there
-                  auth._selectRepo(bookOwnerName, bookName)
+                  auth._selectRepo(bookOwnerName, bookName).done ->
+
+                    # once it loads, open the book metadata modal
+                    require ['cs!gh-book/epub-container', 'cs!gh-book/opf-file'], (epubContainer, opfFile) ->
+                      epubContainer::instance().load().done ->
+                        opf = allContent.findWhere({mediaType: opfFile.prototype.mediaType})
+                        opf.load().done ->
+                          opf.triggerMetadataEdit()
           .fail ->
             auth.$el.find('[data-repo-missing]').hide()
             auth.$el.find('[data-error-creating]').show()
@@ -271,8 +388,8 @@ define [
       # Wait until the remoteUpdater has stopped so the settings object does not
       # switch mid-way while updating
       auth = @
+      promise = new $.Deferred()
       remoteUpdater.stop().always () ->
-
         branchName = '' # means default branch
 
         # First check validity of the new repo details. Do this by attempting
@@ -283,6 +400,7 @@ define [
         branch.read('META-INF/container.xml').fail () ->
           auth.$el.find('[data-repo-missing]').show()
           auth.editRepoModal()
+          promise.reject()
         .then () ->
           # Silently clear the settings first. This forces a reload even if
           # the user leaves the settings unchanged.  The reason for
@@ -295,3 +413,6 @@ define [
           remoteUpdater.start().done () =>
             auth.trigger 'close'
             auth.model.trigger 'settings-changed'
+            promise.resolve()
+
+      promise

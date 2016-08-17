@@ -1,5 +1,6 @@
 define [
   'backbone'
+  'jquery'
   'cs!collections/media-types'
   'cs!collections/content'
   'cs!mixins/loadable'
@@ -10,8 +11,11 @@ define [
   'cs!gh-book/uuid'
   'hbs!templates/gh-book/defaults/opf'
   'hbs!templates/gh-book/defaults/nav'
+  'hbs!templates/gh-book/nav-body-metadata'
+  'hbs!templates/gh-book/nav-head-metadata'
 ], (
   Backbone,
+  $,
   mediaTypes,
   allContent,
   loadable,
@@ -21,7 +25,10 @@ define [
   TocPointerNode,
   uuid,
   defaultOpf,
-  defaultNav) ->
+  defaultNav,
+  navBodyMetadata,
+  navHeadMetadata
+) ->
 
   SAVE_DELAY = 10 # ms
 
@@ -34,9 +41,15 @@ define [
 
     branch: true # This element will show up in the sidebar listing
 
+    addAction: =>
+      @triggerMetadataEdit()
+
+    triggerMetadataEdit: =>
+      require ['cs!views/layouts/workspace/bookshelf'], (Bookshelf) =>
+        Bookshelf::editBook(@)
+
     initialize: (options) ->
       options.root = @
-
 
       @$xml = $($.parseXML defaultOpf(options))
 
@@ -44,6 +57,7 @@ define [
       if not @id
         @setNew()
         @id = "content/#{uuid(@get('title'))}.opf"
+        @$xml.find('#uid').text(uuid(@get('title')))
 
      # For TocNode, let it know this is the root
       super options
@@ -60,8 +74,9 @@ define [
       # when we are internally updating models.
       setNavModel = (options) =>
         if not options.doNotReparse
-          options.doNotReparse = true
-          @navModel.set 'body', @_serializeNavModel(), options
+          options = $.extend({doNotReparse: true}, options)
+          @navModel.set 'head', @_serializeNavModelHead(), options
+          @navModel.set 'body', @_serializeNavModelBody(), options
 
           # if we're updating the nav the spine also probably needs to be updated
           @_buildSpine()
@@ -85,6 +100,164 @@ define [
           $title.text(value)
           @_save()
 
+      tagHelper = (tagName, value, attributes, skipSave) =>
+        return if not value
+
+        container = @$xml.find('metadata')
+
+        # remove any namespace on the tagname so jquery will work
+        selector = tagName.replace(/.*:/, '')
+
+        element = @$xml[0].createElement(tagName)
+
+        _.forIn attributes, (value, key) ->
+          selector += "[#{key.replace(':', '\\:')}=\"#{value}\"]"
+          element.setAttributeNS('http://www.idpf.org/2007/opf', key, value)
+
+        container.find(selector).remove()
+
+        container.append('    ')
+        element.textContent = value
+        container[0].appendChild(element)
+        container.append('\n')
+        if not skipSave
+          setNavModel({})
+          @_save()
+
+      if @_isNew
+        now = new Date()
+        @set('datePublished', "#{now.getFullYear()}-#{now.getMonth()+1}-#{now.getDate()}")
+        tagHelper(
+          'date',
+          @get('datePublished'),
+          {'opf:event': 'publication'},
+          true
+        )
+          
+      @on 'change:language', (model, value, options) =>
+        tagHelper('dc:language', value, {'xsi:type': "dcterms:RFC4646"}) unless options.parse
+      @on 'change:description', (model, value, options) =>
+        tagHelper('dc:description', value) unless options.parse
+      @on 'change:rights', (model, value, options) =>
+        tagHelper('dc:rights', value) unless options.parse
+
+      metaHelper = (value, attributes) =>
+        tagHelper('meta', value, attributes)
+
+      @on 'change:rightsUrl', (model, value, options) =>
+        metaHelper(value, {property: "lrmi:useRightsUrl"}) unless options.parse
+      @on 'change:dateModified', (model, value, options) =>
+        metaHelper(value, {properties: "dcterms:modified"}) unless options.parse
+
+      tagGroupHelper = (tagName, values, attributes) =>
+        # make sure we actually have content
+        return if not values.length
+
+        container = @$xml.find('metadata')
+
+        # remove any namespace on the tagname so jquery will work
+        selector = tagName.replace(/.*:/, '')
+
+        template = @$xml[0].createElement(tagName)
+ 
+        _.forIn attributes, (value, key) ->
+          selector += "[#{key.replace(':', '\\:')}=\"#{value}\"]"
+          template.setAttributeNS('http://www.idpf.org/2007/opf', key, value)
+
+        existing = @$xml.find(selector).remove()
+
+        _.each values, (value) ->
+          element = template.cloneNode()
+          container.append('    ')
+          element.textContent = value
+          container[0].appendChild(element)
+          container.append('\n')
+
+        setNavModel({})
+        @_save()
+
+      @on 'change:subject', (model, value, options) =>
+        tagGroupHelper(
+          'dc:subject',
+          value,
+          {'xsi:type': "http://github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"}
+        ) unless options.parse
+      @on 'change:rightsHolders', (model, value, options) =>
+        tagGroupHelper(
+          'meta',
+          value,
+          {property: "dcterms:rightsHolder"}
+        ) unless options.parse
+      @on 'change:keywords', (model, value, options) =>
+        # make sure we actually have content
+        return if not value.length or options.parse
+
+        container = @$xml.find('metadata')
+        template = "<dc:subject></dc:subject>"
+        @$xml.find('subject').not('[xsi\\:type="http://github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"]').remove()
+
+        _.each(value, (keyword) ->
+          container.append('    ')
+          $(template).text(keyword).appendTo(container)
+          container.append('\n')
+        )
+
+        setNavModel({})
+        @_save()
+
+      creatorHelper = (type, shortType, creators) =>
+
+        # make sure we actually have content
+        creators = creators.filter (i) -> i
+        return if not creators.length
+
+        # remove the existing ones so we don't get dupes
+        @$xml.find('creator[id^="'+type+'"]').remove()
+        @$xml.find('meta[refines^="#'+type+'"]').remove()
+
+        container = @$xml.find('metadata')
+
+        template = @$xml[0].createElement('dc:creator')
+
+        refinesTemplate = "<meta refines=\"##{type}\" property=\"role\" scheme=\"marc:relators\"></meta>"
+
+        i = 1
+        _.each(creators, (creator) ->
+          id = type + '-' + i++
+
+          # coffeescript's regex parser is dumb and needs the character
+          # class for that leading space
+          fileAs = creator.split(/[ ](?=[^ ]+$)/).reverse().join(', ')
+
+          container.append('    ')
+          newCreator = template.cloneNode()
+          newCreator.setAttribute('id', id)
+          newCreator.setAttributeNS('http://www.idpf.org/2007/opf', 'opf:file-as', fileAs)
+          newCreator.textContent = creator
+          container[0].appendChild(newCreator)
+
+          container.append('\n    ')
+          $(refinesTemplate)
+            .attr('refines', '#' + id)
+            .text(shortType)
+            .appendTo(container)
+          container.append('\n')
+        )
+        
+        setNavModel({})
+        @_save()
+
+      @on 'change:authors', (model, value, options) =>
+        creatorHelper('author', 'aut', value) unless options.parse
+      @on 'change:publishers', (model, value, options) =>
+        creatorHelper('publisher', 'pbl', value) unless options.parse
+      @on 'change:editors', (model, value, options) =>
+        creatorHelper('editor', 'edt', value) unless options.parse
+      @on 'change:translators', (model, value, options) =>
+        creatorHelper('translator', 'trl', value) unless options.parse
+      @on 'change:illustrators', (model, value, options) =>
+        creatorHelper('illustrator', 'ill', value) unless options.parse
+
       # When a title changes on one of the nodes in the ToC:
       #
       # 1. remember the change
@@ -102,8 +275,9 @@ define [
       @getChildren().on 'add remove tree:change tree:add tree:remove', (model, collection, options) =>
         setNavModel(options)
       @getChildren().on 'change reset', (collection, options) =>
-        # HACK: `?` is because `inherits/container.add` calls `trigger('change')`
-        setNavModel(options)
+        model = collection.dereferencePointer?() or collection
+        if not _.isEmpty _.omit model.changedAttributes?(), ['_selected']
+          setNavModel(options)
 
       @manifest.on 'add', (model, collection, options) => @_addItem(model, options)
 
@@ -289,11 +463,14 @@ define [
 
       @_markDirty({}) if start != @serialize()
 
-    _serializeNavModel: () ->
-      $body = $(@navModel.get 'body')
-      $wrapper = $('<div></div>').append $body
+    _serializeNavModelHead: () ->
+      return navHeadMetadata(@toJSON())
+
+    _serializeNavModelBody: () ->
+      $wrapper = $('<div></div>')
+      $wrapper.append('<nav></nav>')
+
       $nav = $wrapper.find 'nav'
-      $nav.empty()
 
       $navOl = $('<ol></ol>')
 
@@ -328,7 +505,7 @@ define [
       # Trim the HTML and put newlines between elements
       html =  $wrapper.html()
       html = html.replace(/></g, '>\n<')
-      return html
+      return navBodyMetadata(@toJSON()) + html
 
 
     parse: (json) ->
@@ -359,6 +536,23 @@ define [
       # title if you just use jQuery.find().
       titles = @$xml[0].querySelectorAll('title')
       title = titles.length and $(titles[0]).text() or ''
+
+      # read out metadata
+      metadata = {
+        language: @$xml.find('language[xsi\\:type="dcterms:RFC4646"]').text()
+        description: @$xml.find('description').text()
+        rights: @$xml.find('rights').text()
+        rightsUrl: @$xml.find('meta[property="lrmi:useRightsUrl"]').text()
+        dateModified: @$xml.find('meta[properties="dcterms:modified"]').text()
+        subject: $.makeArray @$xml.find('subject[xsi\\:type="http://github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"]').map((i, el) -> $(el).text())
+        rightsHolders: $.makeArray @$xml.find('meta[property="dcterms:rightsHolder"]').map((i, el) -> $(el).text())
+        keywords: $.makeArray @$xml.find('subject').not('[xsi\\:type="http://github.com/Connexions/rhaptos.cnxmlutils/rhaptos/cnxmlutils/schema"]').map((i, el) -> $(el).text())
+        authors: $.makeArray @$xml.find('meta[property="role"]:contains(aut)').map((i, el) => @$xml.find($(el).attr('refines')).text())
+        publishers: $.makeArray @$xml.find('meta[property="role"]:contains(pbl)').map((i, el) => @$xml.find($(el).attr('refines')).text())
+        editors: $.makeArray @$xml.find('meta[property="role"]:contains(edt)').map((i, el) => @$xml.find($(el).attr('refines')).text())
+        translators: $.makeArray @$xml.find('meta[property="role"]:contains(trl)').map((i, el) => @$xml.find($(el).attr('refines')).text())
+        illustrators: $.makeArray @$xml.find('meta[property="role"]:contains(ill)').map((i, el) => @$xml.find($(el).attr('refines')).text())
+        }
 
       # The manifest contains all the items in the spine
       # but the spine element says which order they are in
@@ -396,10 +590,10 @@ define [
 
       # Ignore the spine because it is defined by the navTree in EPUB3.
       # **TODO:** Fall back on `toc.ncx` and then the `spine` to create a navTree if one does not exist
-      return {
+      return $.extend {
         title: title
         bookId: bookId
-      }
+      }, metadata
 
     serialize: () ->
       serializer.serializeToString(@$xml[0])

@@ -216,9 +216,19 @@ define [
 
       @loadImages($html)
 
+      # Chrome is so concerned that we might lose the namespace that it adds
+      # it to every node whenever we serialize a portion of the tree.
+      # Therefore we cannot use innerHTML and we cannot separately serialize
+      # the head and the body. We instead serialize the whole thing and
+      # cut out the bit we need, which is safe because we know we're working
+      # with valid xml.
+      s = (new XMLSerializer()).serializeToString(doc)
+      head = s.split(/<\/?head[^>]*>/)[1]
+      body = s.split(/<\/?body[^>]*>/)[1]
+
       attributes =
-        head: $head[0]?.innerHTML?.trim() or ''
-        body: $body[0]?.innerHTML?.trim() or ''
+        head: head?.trim() or ''
+        body: body?.trim() or ''
 
       # Set the title that is in the `<head>`
       # TODO: Re-enable after the sprint

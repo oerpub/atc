@@ -53,7 +53,9 @@ define [
         return branch.getCommits().then (commits) =>
           lastUpdatedSha = @lastSeenSha
 
-          lastSeenSha = commits[0].sha
+          # Dirty fix. May break here
+          if commits[0]
+            lastSeenSha = commits[0].sha
 
           if not lastUpdatedSha
             @lastSeenSha = lastSeenSha
