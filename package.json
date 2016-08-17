@@ -18,7 +18,7 @@
     "cs": "git://github.com/jrburke/require-cs.git",
     "backbone": "~1.0",
     "jquery": "~1.8",
-    "coffee-script": "~1.6",
+    "coffee-script": "~1.10",
     "jasmine-node": "~1.10"
   },
   "devDependencies": {

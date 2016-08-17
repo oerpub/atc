@@ -4,7 +4,7 @@
   "main": "scripts/main.js",
   "dependencies": {
     "bookish": "oerpub/bookish#master",
-    "octokit": "0.9.20"
+    "octokit": "0.10.4"
   },
   "ignore": [
     "**/.*",
