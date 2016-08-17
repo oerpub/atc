@@ -1,5 +1,5 @@
 define ['aloha', 'aloha/plugin', 'jquery', 'ui/ui', 'ui/button', 'PubSub', './path', 'css!copy/css/copy.css'], (Aloha, Plugin, jQuery, UI, Button, PubSub, Path) ->
-   
+
   buffer = ''
   srcpath = null
   content_type = null
@@ -99,7 +99,7 @@ define ['aloha', 'aloha/plugin', 'jquery', 'ui/ui', 'ui/button', 'PubSub', './pa
           @copybutton.enable()
         else
           @copybutton.disable()
-    
+
       # Register with ui
       @pastebutton = UI.adopt 'paste', Button,
         tooltip: 'Paste',
@@ -119,7 +119,7 @@ define ['aloha', 'aloha/plugin', 'jquery', 'ui/ui', 'ui/button', 'PubSub', './pa
 
           # Default paste behaviour follows
           $elements = jQuery plugin.getBuffer()
-          
+
           # Remove any classes associated with previewing what element you were copying
           $elements.removeClass('copy-preview focused')
 
@@ -155,7 +155,7 @@ define ['aloha', 'aloha/plugin', 'jquery', 'ui/ui', 'ui/button', 'PubSub', './pa
         $ob.prepend('''
           <div class="aloha-ephemera copy-section-controls"
                contenteditable="false">
-            <span href="#" title="Copy section" class="copy-section"><i class="icon-copy"></i> Copy section</span>
+            <span href="#" title="Copy section" class="copy-section"><i class="fa fa-copy icon-copy"></i> Copy section</span>
           </div>
         ''')
 
@@ -168,7 +168,10 @@ define ['aloha', 'aloha/plugin', 'jquery', 'ui/ui', 'ui/button', 'PubSub', './pa
           @pastebutton.disable()
 
         # Scan editor for sections, add discoverability ui
-        addCopyUi editable.obj.find('h1,h2,h3')
+        addCopyUi(editable.obj.find('h1,h2,h3')
+          .not('[data-type=title]') # not the document title
+          .filter( (i, item) -> !$(item).parents('[contenteditable=false]').length ) # only headings that are editable
+        )
         editable.obj.on 'change-heading', (e) -> addCopyUi(jQuery(e.target))
 
         # When one of these buttons are clicked, copy that section.

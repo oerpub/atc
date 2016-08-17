@@ -4,12 +4,13 @@
     "./dist/qunit/blanket.js"
   ],
   "homepage": "https://github.com/alex-seville/blanket",
-  "_release": "c28f065561",
+  "_release": "4473385f05",
   "_resolution": {
     "type": "branch",
     "branch": "development",
-    "commit": "c28f0655613c0d8726fb9a9e585ceb90a246a5bc"
+    "commit": "4473385f05cb802990f484fd7b3d03104d5ecf79"
   },
-  "_source": "git://github.com/alex-seville/blanket.git",
-  "_target": "development"
+  "_source": "https://github.com/alex-seville/blanket.git",
+  "_target": "development",
+  "_originalSource": "blanket"
 }

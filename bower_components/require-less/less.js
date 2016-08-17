@@ -26,11 +26,6 @@ define(['require'], function(require) {
   pagePath[pagePath.length - 1] = '';
   pagePath = pagePath.join('/');
 
-  // set initial default configuration
-  window.less = window.less || {
-    env: 'development'
-  };
-
   var styleCnt = 0;
   var curStyle;
   lessAPI.inject = function(css) {
@@ -47,6 +42,9 @@ define(['require'], function(require) {
   }
 
   lessAPI.load = function(lessId, req, load, config) {
+    window.less = config.less || {};
+    window.less.env = 'development';
+
     require(['./lessc', './normalize'], function(lessc, normalize) {
 
       var fileUrl = req.toUrl(lessId + '.less');
@@ -61,7 +59,7 @@ define(['require'], function(require) {
         lessAPI.inject(normalize(tree.toCSS(config.less), fileUrl, pagePath));
 
         setTimeout(load, 7);
-      });
+      }, window.less);
 
     });
   }

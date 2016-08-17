@@ -72,11 +72,11 @@
         "link/css": "../plugins/common/link/css",
         "link/nls": "../plugins/common/link/nls",
         "link/res": "../plugins/common/link/res",
-        "table": "../plugins/common/table/lib",
-        "table/vendor": "../plugins/common/table/vendor",
-        "table/css": "../plugins/common/table/css",
-        "table/nls": "../plugins/common/table/nls",
-        "table/res": "../plugins/common/table/res",
+        // "table": "../plugins/common/table/lib",
+        // "table/vendor": "../plugins/common/table/vendor",
+        // "table/css": "../plugins/common/table/css",
+        // "table/nls": "../plugins/common/table/nls",
+        // "table/res": "../plugins/common/table/res",
         "list": "../plugins/common/list/lib",
         "list/vendor": "../plugins/common/list/vendor",
         "list/css": "../plugins/common/list/css",
@@ -211,10 +211,14 @@
         "listenforcer/res": "../plugins/extra/listenforcer/res",
 
         // OER Plugins
+        'draganddropfiles': '../plugins/extra/draganddropfiles/lib',
+        'cleanup': '../plugins/oer/cleanup/lib',
         'overlay'     : '../plugins/oer/overlay/lib',
         'overlay/css' : '../plugins/oer/overlay/css',
         'toolbar'     : '../plugins/oer/toolbar/lib',
         'toolbar/css' : '../plugins/oer/toolbar/css',
+        'figure'     : '../plugins/oer/figure/lib',
+        'figure/css' : '../plugins/oer/figure/css',
         'math'     : '../plugins/oer/math/lib',
         'math/css' : '../plugins/oer/math/css',
         'assorted' : '../plugins/oer/assorted/lib',
@@ -239,6 +243,11 @@
         'multipart/css': '../plugins/oer/multipart/css',
         'quotation': '../plugins/oer/quotation/lib',
         'quotation/css': '../plugins/oer/quotation/css',
+        'table': '../plugins/oer/table/lib',
+        'table/css': '../plugins/oer/table/css',
+        'media-embed': '../plugins/oer/media-embed/lib',
+        'media-embed/css': '../plugins/oer/media-embed/css',
+
 
         //Do not forget to add these to aloha.coffee
 
@@ -285,7 +294,8 @@
     //- "closure.keepLines": Same as closure option, but keeps line returns
     //in the minified files.
     //- "none": no minification will be done.
-    optimize: "none",
+    skipDirOptimize: true,
+    optimize: "uglify2",
 
     //If using UglifyJS for script optimization, these config options can be
     //used to pass configuration values to UglifyJS.
@@ -316,7 +326,7 @@
     //returns.  (r.js 1.0.8+)
     //- "standard.keepComments.keepLines": keeps the file comments and line
     //returns. (r.js 1.0.8+)
-    optimizeCss: "none",//"standard.keepLines",
+    optimizeCss: "standard",//"standard.keepLines",
 
     //If optimizeCss is in use, a list of of files to ignore for the @import
     //inlining. The value of this option should be a comma separated list
@@ -391,7 +401,7 @@
     // Put CSS in a separate file. None of the common aloha modules include
     // css dependencies, so this should cause only the oer css to be collected
     // into one file, in lib/aloha.css.
-    separateCSS: true,
+    separateCSS: false,
 
     //List the modules that will be optimized. All their immediate and deep
     //dependencies will be included in the module's file when the build is
@@ -418,6 +428,8 @@
                 "paste/paste-plugin",
 
                 // OER Plugins
+                'draganddropfiles/draganddropfiles-plugin',
+                'cleanup/cleanup-plugin',
                 'overlay/overlay-plugin',
                 'assorted/assorted-plugin',
                 'toolbar/toolbar-plugin',
@@ -436,7 +448,8 @@
                 'quotation/quotation-plugin',
                 'table/table-plugin',
                 'toolbar/toolbar-plugin',
-            ],
+                'media-embed/media-embed-plugin'
+            ]
         },
     ],
 
@@ -458,7 +471,7 @@
     //at the top of the file that points to the list of all the licenses.
     //This option will turn off the auto-preservation, but you will need
     //work out how best to surface the license information.
-    preserveLicenseComments: true,
+    preserveLicenseComments: false,
 
     //Sets the logging level. It is a number. If you want "silent" running,
     //set logLevel to 4. From the logger.js file:

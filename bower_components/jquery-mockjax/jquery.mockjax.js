@@ -14,6 +14,7 @@
 (function($) {
 	var _ajax = $.ajax,
 		mockHandlers = [],
+		mockedAjaxCalls = [],
 		CALLBACK_REGEX = /=\?(&|$)/,
 		jsc = (new Date()).getTime();
 
@@ -434,6 +435,8 @@
 				continue;
 			}
 
+			mockedAjaxCalls.push(requestSettings);
+
 			// If logging is enabled, log the mock to the console
 			$.mockjaxSettings.log( mockHandler, requestSettings );
 
@@ -476,7 +479,7 @@
 	*/
 	function copyUrlParameters(mockHandler, origSettings) {
 		//parameters aren't captured if the URL isn't a RegExp
-		if (!mockHandler.url instanceof RegExp) {
+		if (!(mockHandler.url instanceof RegExp)) {
 			return;
 		}
 		//if no URL params were defined on the handler, don't attempt a capture
@@ -564,10 +567,14 @@
 		} else {
 			mockHandlers = [];
 		}
+		mockedAjaxCalls = [];
 	};
 	$.mockjax.handler = function(i) {
 		if ( arguments.length == 1 ) {
 			return mockHandlers[i];
 		}
+	};
+	$.mockjax.mockedAjaxCalls = function() {
+		return mockedAjaxCalls;
 	};
 })(jQuery);

@@ -43,7 +43,7 @@
 .semantic-container.copy-preview, .semantic-container.copy-preview > .semantic-controls-top {
     background-color: #F2F2F2;
 }
-.semantic-container.copy-preview .exercise-controls, 
+.semantic-container.copy-preview .exercise-controls,
 .semantic-container.copy-preview .solution-controls {
     display: none !important;
 }
@@ -51,8 +51,8 @@
 .semantic-container.drag-active {
     background: #F0F0F0;
 }
-.semantic-container.drag-active .semantic-controls-top, 
-.semantic-container.drag-active .exercise-controls, 
+.semantic-container.drag-active .semantic-controls-top,
+.semantic-container.drag-active .exercise-controls,
 .semantic-container.drag-active .solution-controls {
     display: none !important;
 }
@@ -63,8 +63,8 @@
 .semantic-container.delete-hover .aloha-oer-block{
     opacity: 0.3;
 }
-.semantic-container.delete-hover .semantic-controls-top, 
-.semantic-container.delete-hover .exercise-controls, 
+.semantic-container.delete-hover .semantic-controls-top,
+.semantic-container.delete-hover .exercise-controls,
 .semantic-container.delete-hover .solution-controls {
     display: none !important;
 }
@@ -97,14 +97,14 @@
     left: 50%;
     top: -8px;
     display: none !important; /* override the default aloha display logic for handles */
-    cursor: -moz-grab !important;
-    cursor: -webkit-grab !important;
-    cursor: url('openhand.cur'), default;
+    cursor: -moz-grab;
+    cursor: -webkit-grab;
+    cursor: grab, move;
 }
 .semantic-container.aloha-oer-dragging .aloha-block-handle {
-    cursor: -moz-grabbing !important;
-    cursor: -webkit-grabbing !important;
-    cursor: url('closedhand.cur'), default;
+    cursor: -moz-grabbing;
+    cursor: -webkit-grabbing;
+    cursor: grabbing, move;
 }
 .semantic-container.drag-active .aloha-block-handle {
     background-color: #F0F0F0;
@@ -186,25 +186,6 @@
   border-left-color: #ccc;
 }
 
-/* Put a bullet/square before the element label/type.  Include "li *" (dropdown code) so that the check mark shares styling ... specifics will be overriden later */
-.aloha-oer-block .type:before , .aloha-oer-block .type-container li *:before{
-    content: "\25A0";
-    vertical-align: top;
-    font-size: .9em;
-    display: inline-block;
-    /* The following helps to account for size/weight differences of other marks (arrow, checkmark) without things jumping around so much */
-    width: 11px;
-}
-
-.focused .aloha-oer-block .dropdown .type:before {
-    /* Change to arrow when hovering block */
-    content: "\25BE";
-    /* Make adjustments so that arrow feels like same size/positioning as square */
-    font-size: 1.1em;
-    margin-left: -1px;
-    margin-right: 1px;
-}
-
 .semantic-container .type-container {
     margin-bottom: 10px;
     position: relative;
@@ -269,6 +250,8 @@
     background: #DDD;
 }
 .semantic-drag-source > * {
+    font-size: 14px;
+    line-height: 20px;
     margin: 5px 0;
     padding: 4px 0 4px 10px;
     border: 1px solid #999;
@@ -320,4 +303,9 @@
 
 .aloha-oer-block .aloha-editable {
     min-height: 20px;
+}
+
+.oer-placeholder:before {
+    content: url(../img/insert-here-arrow.png);
+    opacity: 0.25;
 }

@@ -9,5 +9,6 @@
   "_release": "e-tag:f3f15604a",
   "main": "index.js",
   "_source": "https://raw.github.com/jashkenas/coffee-script/1.6.2/extras/coffee-script.js",
-  "_target": "*"
+  "_target": "*",
+  "_originalSource": "https://raw.github.com/jashkenas/coffee-script/1.6.2/extras/coffee-script.js"
 }

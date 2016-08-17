@@ -13,6 +13,7 @@
     "tag": "0.0.6",
     "commit": "fa0d15d0b22b7eaac07d2c5940fc65f19441bc5c"
   },
-  "_source": "git://github.com/guybedford/require-css.git",
-  "_target": "0.0.6"
+  "_source": "https://github.com/guybedford/require-css.git",
+  "_target": "0.0.6",
+  "_originalSource": "require-css"
 }

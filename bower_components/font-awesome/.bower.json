@@ -8,6 +8,7 @@
     "tag": "v3.1.1",
     "commit": "0750da1f1eb6e869c31e18ba0c634874933654a7"
   },
-  "_source": "git://github.com/FortAwesome/Font-Awesome.git",
-  "_target": "v3.1.1"
+  "_source": "https://github.com/FortAwesome/Font-Awesome.git",
+  "_target": "v3.1.1",
+  "_originalSource": "font-awesome"
 }

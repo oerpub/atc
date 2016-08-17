@@ -163,6 +163,11 @@ repo.getLanguages()
 .done(function(events) {});
 ```
 
+Get releases
+```js
+repo.getReleases()
+.done(function(releases) {});
+```
 
 ### Branch API
 
@@ -171,7 +176,7 @@ Additional methods are available for a specific branch in a repository
 Get the Default branch of a repository
 
 ```js
-var branch = repo.getDefaultBranch();
+var branch = repo.getBranch();
 ```
 
 Get a specific branch of a repository
@@ -236,7 +241,7 @@ var contents = {
   "FILE1.txt": "Contents of the file",
   "FILE2.txt": {isBase64: true, content: "BASE_64_ENCODED_STRING"}
 }
-branch.write(contents, message)
+branch.writeMany(contents, message)
 .done(function() {});
 ```
 
@@ -293,9 +298,10 @@ user.getInfo()
 ```
 
 List public repositories for a particular user.
+_options described [here](http://developer.github.com/v3/repos/#list-user-repositories)_
 
 ```js
-user.getRepos()
+user.getRepos(type='all', sort='pushed', direction='desc')
 .done(function(repos) {});
 ```
 
@@ -507,13 +513,14 @@ For more details see jQuery's [deferred.progress documentation](http://api.jquer
 `octokit.js` has the following dependencies:
 
 - Underscore
-- Base64 (for basic auth or binary files). You can leave this if you are not using basic auth or binary files.
+- Base64 (optional). Only needed if you support older browsers.
+- jQuery or [zepto/ajax](https://github.com/madrobby/zepto/blob/master/src/ajax.js). This is a bit overkill and really should use `XMLHTTPRequest`
 
 If you are not using NodeJS or requireJS include these before `octokit.js`:
 
 ```
 <script src="lib/underscore-min.js">
-<script src="lib/base64.js">
+<script src="lib/base64.js">         <!-- only needed for older browsers -->
 ```
 
 ## Change Log

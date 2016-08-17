@@ -8,37 +8,43 @@ define ['aloha', 'block/block', 'block/blockmanager', 'aloha/plugin', 'aloha/plu
 
   BlockManager.registerBlockType 'semanticBlock', semanticBlock
 
+  settings = {}
+
   DIALOG_HTML = '''
-    <div class="semantic-settings modal hide" id="linkModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="false">
-      <div class="modal-header">
-        <h3></h3>
-      </div>
-      <div class="modal-body">
-        <div style="margin: 20px 10px 20px 10px; padding: 10px; border: 1px solid grey;">
-            <strong>Custom class</strong>
+    <div class="semantic-settings modal fade" id="linkModal" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="false">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h3 class="modal-title"></h3>
+          </div>
+          <div class="modal-body">
             <p>
-                Give this element a custom "class". Nothing obvious will change in your document.
+                Give this element a custom "class" or "type". Nothing obvious will change in your document.
                 This is for advanced book styling and requires support from the publishing system.
-            </p> 
+            </p>
+            <strong>Custom class</strong>
             <input type="text" placeholder="custom element class" name="custom_class">
+            <strong>Custom type</strong>
+            <input type="text" placeholder="custom element type" name="custom_type">
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-primary action submit">Save changes</button>
+            <button class="btn action cancel">Cancel</button>
+          </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-primary action submit">Save changes</button>
-        <button class="btn action cancel">Cancel</button>
       </div>
     </div>'''
 
   blockTemplate = jQuery('<div class="semantic-container aloha-ephemera-wrapper"></div>')
   topControls = jQuery('''
     <div class="semantic-controls-top aloha-ephemera">
-      <a class="copy" title="Copy this element"><i class="icon-copy"></i> Copy element</button>
+      <a class="copy" title="Copy this element"><i class="fa fa-copy icon-copy"></i> Copy element</button>
     </div>
   ''')
   blockControls = jQuery('''
     <div class="semantic-controls aloha-ephemera">
-      <button class="semantic-delete" title="Remove this element"><i class="icon-remove"></i></button>
-      <button class="semantic-settings" title="Advanced options for this element"><i class="icon-cog"></i></button>
+      <button class="semantic-delete" title="Remove this element"><i class="fa fa-times icon-remove"></i></button>
+      <button class="semantic-settings" title="Advanced options for this element"><i class="fa fa-cog icon-cog"></i></button>
     </div>''')
   blockDragHelper = jQuery('''
     <div class="semantic-drag-helper aloha-ephemera">
@@ -73,7 +79,8 @@ define ['aloha', 'block/block', 'block/blockmanager', 'aloha/plugin', 'aloha/plu
     selector: '.semantic-container .semantic-delete'
     callback: () ->
       jQuery(this).parents('.semantic-container').first().slideUp 'slow', ->
-        jQuery(this).remove()
+        jQuery(this).remove();
+        Aloha.activeEditable.smartContentChange({type: 'block-change'});
   ,
     name: 'click'
     selector: '.semantic-container .semantic-controls-top .copy'
@@ -105,12 +112,15 @@ define ['aloha', 'block/block', 'block/blockmanager', 'aloha/plugin', 'aloha/plu
       dialog.modal 'show'
 
       # put the dialog in the middle of the window
-      dialog.css({'margin-top':(jQuery(window).height()-dialog.height())/2,'top':'0'})
+      dialog.css({'margin-top':(jQuery(window).height()-dialog.height()) / 2,'top':'0'})
 
       $element = jQuery(this).parents('.semantic-controls').siblings('.aloha-oer-block')
       elementName = getLabel($element)
       dialog.find('h3').text('Edit options for this ' + elementName)
       dialog.find('[name=custom_class]').val $element.attr('data-class')
+      dialog.find('[name=custom_type]').val $element.attr('data-type')
+      $element.removeAttr('data-class') if $element.attr('data-class') is ''
+      $element.removeAttr('data-type') if $element.attr('data-type') is ''
       dialog.data 'element', $element
   ,
     name: 'click'
@@ -126,7 +136,10 @@ define ['aloha', 'block/block', 'block/blockmanager', 'aloha/plugin', 'aloha/plu
       $dialog.modal 'hide'
       $element = $dialog.data('element')
       $element.attr 'data-class', $dialog.find('[name=custom_class]').val()
+      $element.attr 'data-type', $dialog.find('[name=custom_type]').val()
       $element.removeAttr('data-class') if $element.attr('data-class') is ''
+      $element.removeAttr('data-type') if $element.attr('data-type') is ''
+      Aloha.trigger 'aloha-smart-content-changed', 'triggerType': 'block-change'
   ,
     name: 'mouseover'
     selector: '.semantic-container'
@@ -154,7 +167,7 @@ define ['aloha', 'block/block', 'block/blockmanager', 'aloha/plugin', 'aloha/plu
       $el.empty() if not $el.text().trim() and not $el.find('.aloha-oer-block').length
   ]
   insertElement = (element) ->
-  
+
   getType = ($element) ->
     $element = $element.find('.aloha-oer-block').first() if $element.is('.semantic-container')
 
@@ -173,7 +186,7 @@ define ['aloha', 'block/block', 'block/blockmanager', 'aloha/plugin', 'aloha/plu
       # Show the classes involved, filter out the aloha ones
       classes = (c for c in $element.attr('class').split(/\s+/) when not /^aloha/.test(c))
       elementName = classes.length and "element (class='#{classes.join(' ')}')" or 'element'
-	
+
   activate = ($element) ->
     unless $element.is('.semantic-container') or ($element.is('.alternates') and $element.parents('figure').length)
       $element.addClass 'aloha-oer-block'
@@ -212,8 +225,12 @@ define ['aloha', 'block/block', 'block/blockmanager', 'aloha/plugin', 'aloha/plu
         $element.wrap(blockTemplate).parent().append(controls).prepend(top).alohaBlock({'aloha-block-type': 'semanticBlock'})
 
         type.activate $element
+
+        if not settings.showLabels
+          $element.find('.type-container .type').remove()
+
         return
- 
+
       # if we make it this far none of the activators have run
       # just make it editable
 
@@ -294,9 +311,12 @@ define ['aloha', 'block/block', 'block/blockmanager', 'aloha/plugin', 'aloha/plu
 
   Plugin.create 'semanticblock',
 
-    defaults: {
+    placeholder: $('<span class="aloha-ephemera oer-placeholder"></span>')
+    defaults:
+      semanticDragSelector: '.semantic-drag-source'
+      showLabels: true
       defaultSelector: 'div:not(.title,.aloha-oer-block,.aloha-editable,.aloha-block,.aloha-ephemera-wrapper,.aloha-ephemera)'
-    }
+
     makeClean: (content) ->
 
       content.find('.semantic-container').each ->
@@ -317,16 +337,45 @@ define ['aloha', 'block/block', 'block/blockmanager', 'aloha/plugin', 'aloha/plu
           .removeAttr('contenteditable placeholder')
           .get(0)
 
+      Aloha.bind 'aloha-editable-activated', (e, params) =>
+        $root = params.editable.obj
+
+        if @settings.semanticDragSelector and $root.is('.aloha-root-editable')
+
+          # setting up these drag sources may break if there is more than one top level editable on the page
+          jQuery(@settings.semanticDragSelector).children().each ->
+            element = jQuery(this)
+            elementLabel = (element.data('type') or element.attr('class')).split(' ')[0]
+            element.draggable
+              connectToSortable: $root
+              appendTo: jQuery('#content')
+              revert: 'invalid'
+              helper: ->
+                helper = jQuery(blockDragHelper).clone()
+                helper.find('.title').text elementLabel
+                helper
+
+              start: (e, ui) ->
+                $root.addClass 'aloha-block-dropzone'
+                jQuery(ui.helper).addClass 'dragging'
+
+              refreshPositions: true
+
+
       Aloha.bind 'aloha-editable-created', (e, params) =>
-        $root = params.obj
+        $root    = params.obj
+        settings = @settings
+        selector = @settings.defaultSelector
+        classes  = []
 
-        classes = []
-        classes.push type.selector for type in registeredTypes
+        for type in registeredTypes
+          if type.selector
+            classes.push type.selector
 
-        selector = @settings.defaultSelector + ',' + classes.join()
+        selector += ',' + classes.join() if classes.length
 
         # theres no really good way to do this. editables get made into sortables
-        # on `aloha-editable-created` and there is no event following that, so we 
+        # on `aloha-editable-created` and there is no event following that, so we
         # just have to wait
         sortableInterval = setInterval ->
           if $root.data 'sortable'
@@ -351,7 +400,7 @@ define ['aloha', 'block/block', 'block/blockmanager', 'aloha/plugin', 'aloha/plu
               $element = jQuery(ui.item)
               activate $element if $element.is(selector)
               getType($element)?.onDrop?($element)
-              Aloha.activeEditable.smartContentChange({type: 'block-change'})
+              Aloha.activeEditable?.smartContentChange({type: 'block-change'})
 
               $element.removeClass('drag-active')
 
@@ -364,25 +413,19 @@ define ['aloha', 'block/block', 'block/blockmanager', 'aloha/plugin', 'aloha/plu
           $root.find(selector).each ->
             activate jQuery(@) if not jQuery(@).parents('.semantic-drag-source').length
 
-          # setting up these drag sources may break if there is more than one top level editable on the page
-          jQuery('.semantic-drag-source').children().each ->
-            element = jQuery(this)
-            elementLabel = (element.data('type') or element.attr('class')).split(' ')[0]
-            element.draggable
-              connectToSortable: $root
-              appendTo: jQuery('#content')
-              revert: 'invalid'
-              helper: ->
-                helper = jQuery(blockDragHelper).clone()
-                helper.find('.title').text elementLabel
-                helper
-         
-              start: (e, ui) ->
-                $root.addClass 'aloha-block-dropzone'
-                jQuery(ui.helper).addClass 'dragging'
-         
-              refreshPositions: true
+    insertPlaceholder: ->
+      placeholder = $('<span class="aloha-ephemera oer-placeholder"></span>')
+      range = Aloha.Selection.getRangeObject()
+      GENTICS.Utils.Dom.insertIntoDOM placeholder, range, Aloha.activeEditable.obj
+      return placeholder
 
+    insertOverPlaceholder: ($element, $placeholder) ->
+      $element.addClass 'semantic-temp'
+      $placeholder.replaceWith($element)
+      $element = Aloha.jQuery('.semantic-temp').removeClass('semantic-temp')
+      activate $element
+
+      $element
 
     insertAtCursor: (template) ->
       $element = jQuery(template)
@@ -398,9 +441,12 @@ define ['aloha', 'block/block', 'block/blockmanager', 'aloha/plugin', 'aloha/plu
       $element = Aloha.jQuery('.semantic-temp').removeClass('semantic-temp')
       activate $element
 
+    ignore: (selector) ->
+      @settings.defaultSelector += ':not('+selector+')'
+
     register: (plugin) ->
       registeredTypes.push(plugin)
-      @settings.defaultSelector += ':not('+plugin.ignore+')' if plugin.ignore
+      @ignore(plugin.ignore) if plugin.ignore
 
     registerEvent: (name, selector, callback) ->
       pluginEvents.push

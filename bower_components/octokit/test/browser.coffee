@@ -1,9 +1,8 @@
 # TODO: Use requirejs and require('chai')
 assert = @chai.assert
 expect = @chai.expect
-_ = @_
 
-@makeTests(_, assert, expect, btoa, @Octokit)
+@makeTests(assert, expect, btoa, @Octokit)
 
 
 # from http://www.geekdave.com/2013/08/02/automated-code-coverage-enforcement-for-mocha-using-grunt-and-blanket/

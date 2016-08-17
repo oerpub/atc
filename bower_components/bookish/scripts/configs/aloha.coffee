@@ -58,7 +58,7 @@ define ['jquery'], ($) ->
         'ghbook/image'
         'common/image'
         'oer/semanticblock'
-        'oer/note'
+        # 'oer/note'
         'oer/example'
         'oer/exercise'
         'oer/quotation'
@@ -67,6 +67,9 @@ define ['jquery'], ($) ->
         'oer/multipart'
         'oer/copy'
         'oer/cleanup'
+        'oer/figure'
+        'oer/media-embed'
+        'oer/metadata'
       ]
 
       # This whole thing is what's needed to:

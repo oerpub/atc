@@ -12,7 +12,29 @@
 }
 
 figure.aloha-oer-block img {
-    max-width: none;
+  max-width: none;
+  position: relative;
+}
+
+figure .add-figure-left,
+figure .add-figure-right {
+  top: 45%;
+  float: left;
+  position: absolute;
+  font-size: 40px;
+  color: #428bca;
+  display: none;
+  cursor: pointer;
+} 
+figure .add-figure-left {
+  left: 20px;
+} 
+figure .add-figure-right {
+  right: 20px;
+} 
+figure:hover .add-figure-left,
+figure:hover .add-figure-right {
+  display: inline;
 }
 
 .image-options .placeholder.preview img {
@@ -41,25 +63,28 @@ form#linkModal:focus {
     outline: none;
 }
 
-figure.aloha-oer-block {
-    display: block;
-    border: 0;
-    padding-top: 0; 
-    padding-bottom: 0;
-    margin: 0 32px 0 15px !important; /* !important in order to override ID-based selector from oerpub-content.less */
-}
-
-figure.aloha-oer-block > .title, 
-figure.aloha-oer-block > figcaption {
-    display: block;
-    text-align: center
-}
-
 figure.aloha-oer-block .image-wrapper {
     position: relative;
-    display: block;
+    display: inline-block;
     margin: 0 auto;
     overflow-x: auto;
+}
+
+figure.aloha-oer-block figure .image-wrapper:hover img {
+  opacity: 0.3; 
+}
+
+figure.aloha-oer-block .image-remove {
+  position: absolute;
+  cursor: pointer;
+  top: calc(50% - 25px);
+  left: calc(50% - 25px);
+  font-size: 50px;
+  display: none;
+}
+
+figure.aloha-oer-block figure .image-wrapper:hover .image-remove {
+  display: block;
 }
 
 figure.aloha-oer-block .image-wrapper .image-edit {
@@ -88,7 +113,7 @@ figure.aloha-oer-block .image-wrapper .image-edit:not(.passive):hover {
 
 figure.aloha-oer-block .image-wrapper .image-edit .warning-text{
   color: #fff;
-  text-shadow: 1px 1px 3px #000; 
+  text-shadow: 1px 1px 3px #000;
   font-style: italic;
 }
 
@@ -116,13 +141,7 @@ figure.aloha-oer-block .image-wrapper .image-edit.thank-you{
     display: block;
 }
 
-i.icon-warning {
-  display: inline-block;
-  background-image: url(../img/warning-01.png);
-  background-position: 0 bottom;
-  background-repeat: no-repeat;
-  margin-right: 8px;
-  width: 16px;
-  height: 16px;
+i.fa.fa-warning {
+  color: #dd3;
   vertical-align: bottom;
 }

@@ -87,9 +87,6 @@ math,
     width: 16px;
     top: -1px;
     height: 16px;
-    background-image: url(../img/remove-01.png);
-    background-repeat: no-repeat;
-    background-position: right top;
     cursor: pointer;
 }
 
@@ -98,10 +95,8 @@ math,
     text-decoration: none;
 }
 
-.math-element .math-element-destroy:hover {
-    background-image: url(../img/remove-02.png);
-}
-
-button.done, button.copy {
-    float: right;
+button.done,
+button.copy,
+button.clear {
+  margin-left: 5px;
 }

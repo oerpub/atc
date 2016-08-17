@@ -43,10 +43,10 @@ define [ 'aloha', 'aloha/plugin', 'jquery', 'overlay/overlay-plugin', 'ui/ui', '
     <div class="math-editor-dialog">
         <div class="math-container">
             <pre><span></span><br></pre>
-            <textarea type="text" class="formula" rows="1"
+            <textarea type="text" class="formula" rows="1" autofocus="autofocus"
                       placeholder="Insert your math notation here"></textarea>
         </div>
-        <div class="footer">
+        <div class="footer controls form-inline">
           <span>This is:</span>
           <label class="radio inline">
               <input type="radio" name="mime-type" value="math/asciimath"> ASCIIMath
@@ -60,8 +60,9 @@ define [ 'aloha', 'aloha/plugin', 'jquery', 'overlay/overlay-plugin', 'ui/ui', '
           <label class="plaintext-label radio inline">
               <input type="radio" name="mime-type" value="text/plain"> Plain text
           </label>
+          <button class="btn btn-default clear">Clear</button>
+          <button class="btn btn-default copy">Copy</button>
           <button class="btn btn-primary done">Done</button>
-          <button class="btn copy">Copy</button>
         </div>
     </div>
   '''
@@ -87,7 +88,7 @@ define [ 'aloha', 'aloha/plugin', 'jquery', 'overlay/overlay-plugin', 'ui/ui', '
   # losing all jQuery data attached to it (like popover data, the original Math Formula, etc)
   # add `aloha-ephemera-wrapper` so this span is unwrapped
   Aloha.ready ->
-    MathJax.Hub.Configured() if MathJax?
+    MathJax?.Hub.Configured()
 
   placeCursorAfter = (el) ->
     # The selection-changed stuff in aloha incorrectly thinks we are
@@ -116,7 +117,7 @@ define [ 'aloha', 'aloha/plugin', 'jquery', 'overlay/overlay-plugin', 'ui/ui', '
 
 
   getMathFor = (el) ->
-    jax = MathJax.Hub.getJaxFor el
+    jax = MathJax?.Hub.getJaxFor(el)
     if jax
       return jQuery(jax.root.toMathML())
     return null
@@ -124,7 +125,7 @@ define [ 'aloha', 'aloha/plugin', 'jquery', 'overlay/overlay-plugin', 'ui/ui', '
   squirrelMath = ($el) ->
     # `$el` is the `.math-element`
 
-    $mml = getMathFor $el.find('script')[0]
+    $mml = getMathFor($el.find('script')[0])
     if $mml != null
       # STEP3
       $el.find('.mathml-wrapper').remove()
@@ -246,7 +247,7 @@ define [ 'aloha', 'aloha/plugin', 'jquery', 'overlay/overlay-plugin', 'ui/ui', '
       # Though the tooltip was bound to the editor and delegates
       # to these items, you still have to clean it up youself
       $el.siblings('.math-element-spaceafter').remove()
-      $el.trigger('hide-popover').tooltip('destroy').remove()
+      $el.popover('hide').tooltip('destroy').remove()
       Aloha.activeEditable.smartContentChange {type: 'block-change'}
     )
 
@@ -272,7 +273,7 @@ define [ 'aloha', 'aloha/plugin', 'jquery', 'overlay/overlay-plugin', 'ui/ui', '
     $math = jQuery('<span class="math-element aloha-ephemera-wrapper"><span class="mathjax-wrapper aloha-ephemera"></span></span>')
     $container.html($math)
     $math.trigger 'show-popover'
-    
+
   insertMath = () ->
     $el = jQuery('<span class="math-element aloha-ephemera-wrapper"><span class="mathjax-wrapper aloha-ephemera">&#160;</span></span>') # nbsp
     range = Aloha.Selection.getRangeObject()
@@ -318,22 +319,24 @@ define [ 'aloha', 'aloha/plugin', 'jquery', 'overlay/overlay-plugin', 'ui/ui', '
   # $span contains the span with LaTeX/ASCIIMath
   buildEditor = ($span) ->
     $editor = $_editor.clone(true)
+    $formula = $editor.find('.formula')
 
     # If this is new math, drop the plain text option.
-    if $span.find('.mathjax-wrapper > *').length == 0
+    if $span.find('.mathjax-wrapper > *').length is 0
       $editor.find('.plaintext-label').remove()
 
     # Bind some actions for the buttons
-    $editor.find('.done').on 'click', =>
-      $span.trigger 'hide-popover'
+    $editor.find('.done').on 'click', ->
+      $span.popover('hide')
       placeCursorAfter($span)
-    $editor.find('.remove').on 'click', =>
-      $span.trigger 'hide-popover'
+    $editor.find('.remove').on 'click', ->
+      $span.popover('hide')
       cleanupFormula($editor, $span, true)
-    $editor.find('.copy').on 'click', =>
+    $editor.find('.copy').on 'click', ->
       Copy.buffer $span.outerHtml(), 'text/oerpub-content'
-
-    $formula = $editor.find('.formula')
+    $editor.find('.clear').on 'click', ->
+      $formula.val('')
+      $formula.trigger('input')
 
     # Set the formula in jQuery data if it hasn't been set before
     #$span.data('math-formula', $span.data('math-formula') or $span.attr('data-math-formula') or $span.text())
@@ -345,7 +348,7 @@ define [ 'aloha', 'aloha/plugin', 'jquery', 'overlay/overlay-plugin', 'ui/ui', '
     formula = $span.find('script[type]').html()
 
     # Set the language and fill in the formula
-    $editor.find("input[name=mime-type][value='#{mimeType}']").attr('checked', true)
+    $editor.find("input[name=mime-type][value='#{mimeType}']").prop('checked', true)
     $formula.val(formula)
 
     # Set the hidden pre that causes auto-sizing to the same value
@@ -397,18 +400,18 @@ define [ 'aloha', 'aloha/plugin', 'jquery', 'overlay/overlay-plugin', 'ui/ui', '
       $formula.trigger('focus')
 
     $formula.on 'input', () ->
-        clearTimeout(keyTimeout)
-        setTimeout(keyDelay.bind(@), 500)
-        $editor.find('.math-container pre span').text(
-            $editor.find('.formula').val())
+      clearTimeout(keyTimeout)
+      setTimeout(keyDelay.bind(@), 500)
+      $editor.find('.math-container pre span').text($formula.val())
 
-    # Grr, Bootstrap doesn't set the cheked value properly on radios
     radios = $editor.find('input[name=mime-type]')
     radios.on 'click', () ->
-        radios.attr('checked', false)
-        jQuery(@).attr('checked', true)
-        clearTimeout(keyTimeout)
-        setTimeout(keyDelay.bind($formula), 500)
+      # The following lines are for bootstrap 2
+      # radios.prop('checked', false)
+      # jQuery(@).prop('checked', true)
+
+      clearTimeout(keyTimeout)
+      setTimeout(keyDelay.bind($formula), 500)
 
     $span.off('shown.math').on 'shown.math', () ->
       $span.css 'background-color', '#E5EEF5'
@@ -437,7 +440,7 @@ define [ 'aloha', 'aloha/plugin', 'jquery', 'overlay/overlay-plugin', 'ui/ui', '
     # $el is <span class="math-element">
     $closer = $el.find '.math-element-destroy'
     if not $closer[0]?
-      $closer = jQuery('<span class="math-element-destroy aloha-ephemera" title="Delete\u00A0math">&nbsp;</span>')
+      $closer = jQuery('<span class="math-element-destroy aloha-ephemera fa fa-times" title="Delete\u00A0math"></span>')
       # The hidden event on the closeIcon should not propagate, otherwise it
       # triggers cleanupFormula repeatedly on an empty math element, causing
       # infinite recursion.
@@ -517,8 +520,8 @@ define [ 'aloha', 'aloha/plugin', 'jquery', 'overlay/overlay-plugin', 'ui/ui', '
     click: () -> insertMath()
 
   # Add a copy option to the mathjax menu
-  MathJax.Callback.Queue MathJax.Hub.Register.StartupHook "MathMenu Ready", () ->
-    copyCommand = MathJax.Menu.ITEM.COMMAND "Copy Math", (e,f,g) ->
+  MathJax?.Callback.Queue MathJax.Hub.Register.StartupHook('MathMenu Ready'), () ->
+    copyCommand = MathJax.Menu.ITEM.COMMAND 'Copy Math', (e,f,g) ->
       $script = jQuery(document.getElementById(MathJax.Menu.jax.inputID))
       Copy.buffer $script.parent().parent().outerHtml(), 'text/oerpub-content'
     MathJax.Menu.menu.items.unshift copyCommand
@@ -533,5 +536,5 @@ define [ 'aloha', 'aloha/plugin', 'jquery', 'overlay/overlay-plugin', 'ui/ui', '
     # Expose editor, so the cheatsheet plugin can modify it.
     editor: $_editor
 
-  Popover.register ob
+  Popover.register(ob)
   return ob

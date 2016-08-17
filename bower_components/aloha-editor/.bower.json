@@ -1,0 +1,24 @@
+{
+  "name": "Aloha-Editor",
+  "homepage": "https://github.com/oerpub/Aloha-Editor",
+  "authors": [
+    "Philip Schatz <phil@cnx.org>"
+  ],
+  "moduleType": [
+    "amd"
+  ],
+  "license": "AGPL",
+  "dependencies": {
+    "bootstrap": "~3.3",
+    "font-awesome": "~4.4"
+  },
+  "_release": "fad076dbbd",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "fad076dbbd22571c63fb7031285704a0b53b5914"
+  },
+  "_source": "git://github.com/oerpub/Aloha-Editor.git",
+  "_target": "master",
+  "_originalSource": "oerpub/Aloha-Editor"
+}

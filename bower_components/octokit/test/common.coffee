@@ -1,4 +1,4 @@
-makeTests = (_, assert, expect, btoa, Octokit) ->
+makeTests = (assert, expect, btoa, Octokit) ->
 
   USERNAME = 'octokit-test'
   TOKEN = 'dca7f85a5911df8e9b7aeb4c5be8f5f50806ac49'
@@ -10,7 +10,7 @@ makeTests = (_, assert, expect, btoa, Octokit) ->
 
   REPO_HOMEPAGE = 'https:/github.com/philschatz/octokit.js'
   OTHER_HOMEPAGE = 'http://example.com'
- 
+
   OTHER_USERNAME = 'octokit-test2'
 
   DEFAULT_BRANCH = 'master'
@@ -21,13 +21,18 @@ makeTests = (_, assert, expect, btoa, Octokit) ->
 
   IS_NODE = !! module?
 
+  some = (arr, fn) ->
+    for entry in arr
+      do (entry) ->
+        if fn(entry) == true
+          return true
+    return false
 
   trapFail = (promise) ->
     promise.fail (err) ->
       console.error(JSON.stringify(err))
       assert.fail(err)
     return promise
-
 
   helper1 = (done, promise, func) ->
     return trapFail(promise)
@@ -39,9 +44,8 @@ makeTests = (_, assert, expect, btoa, Octokit) ->
     .then(func)
 
   arrayContainsKey = (arr, key, value) ->
-    _.some arr, (entry) ->
+    some arr, (entry) ->
       return entry[key] == value
-
 
   describe 'Octokit', () ->
     @timeout(LONG_TIMEOUT)
@@ -112,7 +116,7 @@ makeTests = (_, assert, expect, btoa, Octokit) ->
               initialCommit = commits[commits.length-1]
               sha = initialCommit.sha
 
-              masterBranch = repoInfo.master_branch
+              masterBranch = repoInfo.default_branch
               console.log('BEFORE: Found master branch')
               console.log("BEFORE: Updating #{masterBranch} to #{sha}")
               trapFail(STATE[REPO].git.updateHead(masterBranch, sha, true)) # true == force
@@ -167,6 +171,12 @@ makeTests = (_, assert, expect, btoa, Octokit) ->
               PREV_SHA = val.sha
               done()
 
+        it 'removes a single file', (done) ->
+          FILE_PATH = 'test.txt'
+          trapFail(STATE[BRANCH].remove(FILE_PATH))
+          .done () ->
+            done()
+
         it 'commits multiple files at once (including binary ones)', (done) ->
           FILE1 = 'testdir/test1.txt'
           FILE2 = 'testdir/test2.txt'
@@ -186,9 +196,9 @@ makeTests = (_, assert, expect, btoa, Octokit) ->
                 expect(val.content).to.equal(contents[FILE2].content)
                 done()
 
-        it 'should have created 3 commits (2 + the initial)', (done) ->
+        it 'should have created 4 commits (3 + the initial)', (done) ->
           helper1 done, STATE[REPO].getCommits(), (commits) ->
-            expect(commits).to.have.length(3)
+            expect(commits).to.have.length(4)
 
       describe 'Collaborators:', () ->
         it 'initially should have only 1 collaborator', (done) ->
@@ -234,12 +244,18 @@ makeTests = (_, assert, expect, btoa, Octokit) ->
         it 'changing the default branch should not explode', (done) ->
           helper1 done, STATE[REPO].setDefaultBranch(DEFAULT_BRANCH), (result) ->
             expect(result.default_branch).to.equal(DEFAULT_BRANCH)
-        
+
       describe 'fetch organization', () ->
         it 'should be able to fetch organization info', (done) ->
 
           helper1 done, STATE[GH].getOrg(ORG_NAME).getInfo(), (info) ->
             expect(info.login).to.equal(ORG_NAME)
+
+      describe 'Releases', () ->
+        it 'should be able to get releases', (done) ->
+
+          helper1 done, STATE[REPO].getReleases(), (releases) ->
+            expect(releases).to.have.length(0)
 
       describe 'Events:', () ->
         itIsOk(REPO, 'getEvents')
@@ -266,7 +282,7 @@ makeTests = (_, assert, expect, btoa, Octokit) ->
           itIsOk(USER, 'getFollowers')
           itIsOk(USER, 'getFollowing')
           #(USER, 'isFollowing')
-          itIsOk(USER, 'getPublicKeys')
+          # itIsOk(USER, 'getPublicKeys')
           # itIsOk(USER, 'getReceivedEvents')
           # itIsOk(USER, 'getEvents')
 

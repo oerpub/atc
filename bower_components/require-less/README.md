@@ -1,6 +1,8 @@
 require-less
 ===========
 
+**Note: This project is not currently actively supported and is seeking a maintainer.**
+
 Optimizable LESS requiring with RequireJS
 
 Based on the ideas from [require-css module](https://github.com/guybedford/require-css), read the documentation there for further usage instructions.
@@ -98,10 +100,12 @@ Compilation Options
 Compilation options can be set with the `less` configuration option in the RequireJS config:
 
 ```javascript
+requirejs.config({
   less: {
     // ... custom LESS compiler options ...
     // for example: relativeUrls: true
   }
+});
 ```
 
 License

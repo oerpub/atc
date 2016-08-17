@@ -2,24 +2,34 @@ define(['require', './normalize'], function(req, normalize) {
   var lessAPI = {};
 
   var isWindows = !!process.platform.match(/^win/);
-  
-  var baseParts = req.toUrl('base_url').split('/');
+  var normalizeWinPath = function(path) {
+    return isWindows ? path.replace(/\\/g, '/') : path;
+  }
+
+  var baseParts = normalizeWinPath(req.toUrl('base_url')).split('/');
   baseParts[baseParts.length - 1] = '';
   var baseUrl = baseParts.join('/');
-  
+
   function compress(css) {
     if (typeof process !== "undefined" && process.versions && !!process.versions.node && require.nodeRequire) {
       try {
         var csso = require.nodeRequire('csso');
+      }
+      catch(e) {
+        console.log('Compression module not installed. Use "npm install csso -g" to enable.');
+        return css;
+      }
+      try {
         var csslen = css.length;
         css = csso.justDoIt(css);
         console.log('Compressed CSS output to ' + Math.round(css.length / csslen * 100) + '%.');
         return css;
       }
       catch(e) {
-        console.log('Compression module not installed. Use "npm install csso -g" to enable.');
+        console.log('Unable to compress css.\n' + e);
         return css;
       }
+
     }
     console.log('Compression not supported outside of nodejs environments.');
     return css;
@@ -32,7 +42,7 @@ define(['require', './normalize'], function(req, normalize) {
     else {
       var content = new java.lang.String(data);
       var output = new java.io.BufferedWriter(new java.io.OutputStreamWriter(new java.io.FileOutputStream(path), 'utf-8'));
-  
+
       try {
         output.write(content, 0, content.length());
         output.flush();
@@ -68,29 +78,28 @@ define(['require', './normalize'], function(req, normalize) {
   }
 
   var absUrlRegEx = /^([^\:\/]+:\/)?\//;
-  
+
   lessAPI.load = function(name, req, load, _config) {
     //store config
     config = config || _config;
 
     if (!siteRoot) {
       siteRoot = path.resolve(config.dir || path.dirname(config.out), config.siteRoot || '.') + '/';
-      if (isWindows)
-        siteRoot = siteRoot.replace(/\\/g, '/');
+      siteRoot = normalizeWinPath(siteRoot);
     }
 
     if (name.match(absUrlRegEx))
       return load();
 
-    var fileUrl = req.toUrl(name + '.less');
+    var fileUrl = normalizeWinPath(req.toUrl(name + '.less'));
 
     //add to the buffer
-    var parser = new less.Parser({
-      paths: [baseUrl],
-      filename: fileUrl,
-      async: false,
-      syncImport: true
-    });
+    var cfg = _config.less || {};
+    cfg.paths = [baseUrl];
+    cfg.filename = fileUrl;
+    cfg.async = false;
+    cfg.syncImport = true;
+    var parser = new less.Parser(cfg);
     parser.parse('@import (multiple) "' + path.relative(baseUrl, fileUrl) + '";', function(err, tree) {
       if (err) {
         console.log(err + ' at ' + path.relative(baseUrl, err.filename) + ', line ' + err.line);
@@ -100,34 +109,57 @@ define(['require', './normalize'], function(req, normalize) {
       var css = tree.toCSS(config.less);
 
       // normalize all imports relative to the siteRoot, itself relative to the output file / output dir
-      lessBuffer[name] = normalize(css, isWindows ? fileUrl.replace(/\\/g, '/') : fileUrl, siteRoot);
+      lessBuffer[name] = normalize(css, fileUrl, siteRoot);
 
       load();
-    });
+    }, cfg);
   }
 
   var layerBuffer = [];
-  
+
   lessAPI.write = function(pluginName, moduleName, write) {
     if (moduleName.match(absUrlRegEx))
-      return load();
-    
+      return;
+
     layerBuffer.push(lessBuffer[moduleName]);
     
+    //use global variable to combine plugin results with results of require-css plugin
+    if (!global._requirejsCssData) {
+      global._requirejsCssData = {
+        usedBy: {less: true},
+        css: ''
+      }
+    } else {
+      global._requirejsCssData.usedBy.less = true;
+    }
+
     write.asModule(pluginName + '!' + moduleName, 'define(function(){})');
   }
-  
+
   lessAPI.onLayerEnd = function(write, data) {
-    
+
     //calculate layer css
     var css = layerBuffer.join('');
-    
+
     if (config.separateCSS) {
       console.log('Writing CSS! file: ' + data.name + '\n');
-      
-      var outPath = config.appDir ? config.baseUrl + data.name + '.css' : config.out.replace(/\.js$/, '.css');
-      
-      saveFile(outPath, compress(css));
+
+      var outPath = config.dir ? path.resolve(config.dir, config.baseUrl, data.name + '.css') : config.out.replace(/(\.js)?$/, '.css');
+      outPath = normalizeWinPath(outPath);
+
+      css = normalize(css, siteRoot, outPath);
+
+      process.nextTick(function() {
+        if (global._requirejsCssData) {
+          css = global._requirejsCssData.css = css + global._requirejsCssData.css;
+          delete global._requirejsCssData.usedBy.less;
+          if (Object.keys(global._requirejsCssData.usedBy).length === 0) {
+            delete global._requirejsCssData;
+          }
+        }
+
+        saveFile(outPath, compress(css));
+      });
     }
     else {
       if (css == '')
@@ -137,10 +169,10 @@ define(['require', './normalize'], function(req, normalize) {
         + "('" + escape(compress(css)) + "');\n"
       );
     }
-    
+
     //clear layer buffer for next layer
     layerBuffer = [];
   }
-  
+
   return lessAPI;
 });

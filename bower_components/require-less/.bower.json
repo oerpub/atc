@@ -5,12 +5,13 @@
     ".gitignore"
   ],
   "homepage": "https://github.com/guybedford/require-less",
-  "_release": "5a145aacec",
+  "_release": "71d214bb2f",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "5a145aacecb340e07a5f26a42c8e5017014fe6ad"
+    "commit": "71d214bb2fb2e35cee941bf04bc9be92f24def34"
   },
   "_source": "git://github.com/guybedford/require-less.git",
-  "_target": "master"
+  "_target": "master",
+  "_originalSource": "guybedford/require-less"
 }

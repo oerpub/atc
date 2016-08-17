@@ -8,5 +8,6 @@
     "commit": "7e6da09557c90ff6218b2c7fb1698081c01e8f92"
   },
   "_source": "git://github.com/philschatz/jsdifflib.git",
-  "_target": "master"
+  "_target": "master",
+  "_originalSource": "philschatz/jsdifflib"
 }

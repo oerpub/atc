@@ -8,6 +8,7 @@
     "tag": "v1.3.1",
     "commit": "fadd494cab99b75c2885f4e9becee582b11b6fcc"
   },
-  "_source": "git://github.com/pivotal/jasmine.git",
-  "_target": "v1.3.1"
+  "_source": "https://github.com/pivotal/jasmine.git",
+  "_target": "v1.3.1",
+  "_originalSource": "jasmine"
 }

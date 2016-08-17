@@ -1,12 +1,13 @@
 {
   "name": "filtered-collection",
   "homepage": "https://github.com/dlikhten/filtered-collection",
-  "_release": "be9d86707a",
+  "_release": "6bdaecc4a4",
   "_resolution": {
     "type": "branch",
     "branch": "master",
-    "commit": "be9d86707a8a87026b86827c8978b7bcf0806f80"
+    "commit": "6bdaecc4a4fcfd24806b54d4cdd8552ee25413f9"
   },
   "_source": "git://github.com/dlikhten/filtered-collection.git",
-  "_target": "*"
+  "_target": "*",
+  "_originalSource": "dlikhten/filtered-collection"
 }

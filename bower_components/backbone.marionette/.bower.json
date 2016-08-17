@@ -44,6 +44,7 @@
     "tag": "v1.0.3",
     "commit": "c20d38493ed7cd371dae28ab3bbd3a6317d7dbfe"
   },
-  "_source": "git://github.com/marionettejs/backbone.marionette.git",
-  "_target": "v1.0.3"
+  "_source": "https://github.com/marionettejs/backbone.marionette.git",
+  "_target": "v1.0.3",
+  "_originalSource": "backbone.marionette"
 }
