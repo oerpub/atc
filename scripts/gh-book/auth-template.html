@@ -30,7 +30,7 @@
     </a>
     <ul class="dropdown-menu pull-right">
       {{#if isAuthenticated}}
-        <li><a href="" id="sign-out">Sign Out of "{{id}}"</a></li> 
+        <li><a href="" id="sign-out">Sign Out of "{{id}}"</a></li>
       {{else}}
         <li><a href="" id="sign-in">Sign In</a></li>
       {{/if}}
@@ -41,10 +41,12 @@
 </div>
 
 <!-- Sign in Modal -->
-<div id="sign-in-modal" data-backdrop="false" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="sign-in-modal-label" aria-hidden="true">
+<div id="sign-in-modal" data-backdrop="false" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="sign-in-modal-label" aria-hidden="true">
+  <div class="modal-dialog">
+  <div class="modal-content">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="sign-in-modal-label">Sign in to Book Editor</h3>
+    <h3 id="sign-in-modal-label" class="modal-title">Sign in to Book Editor</h3>
   </div>
   <form class="modal-form" action="#" id="login-form">
   <div class="modal-body">
@@ -73,14 +75,18 @@
     <button id="sign-in-ok" type="submit" class="btn btn-primary">Sign In</button>
   </div>
   </form>
+  </div>
+  </div>
 </div>
 
 
 <!-- Fork Book Modal -->
-<div id="fork-book-modal" data-backdrop="false" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="fork-book-modal-label" aria-hidden="true">
+<div id="fork-book-modal" data-backdrop="false" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="fork-book-modal-label" aria-hidden="true">
+  <div class="modal-dialog">
+  <div class="modal-content">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="fork-book-modal-label">Copy this shelf!</h3>
+    <h3 id="fork-book-modal-label" class="modal-title">Copy this shelf!</h3>
   </div>
   <h4>&#160; Places I have permission to make changes:</h4>
   <div class="modal-body">
@@ -91,12 +97,16 @@
   <div class="modal-footer">
     <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
   </div>
+  </div>
+  </div>
 </div>
 
-<div id="fork-progress-modal" data-backdrop="false" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="fork-progress-modal-label" aria-hidden="true">
+<div id="fork-progress-modal" data-backdrop="false" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="fork-progress-modal-label" aria-hidden="true">
+  <div class="modal-dialog">
+  <div class="modal-content">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="fork-progress-modal-label">Copying in progress</h3>
+    <h3 id="fork-progress-modal-label" class="modal-title">Copying in progress</h3>
   </div>
   <div class="modal-body">
     [Progress indicator here]
@@ -104,12 +114,16 @@
   <div class="modal-footer">
     <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
   </div>
+  </div>
+  </div>
 </div>
 
-<div id="fork-redirect-modal" data-backdrop="false" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="fork-redirect-modal-label" aria-hidden="true">
+<div id="fork-redirect-modal" data-backdrop="false" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="fork-redirect-modal-label" aria-hidden="true">
+  <div class="modal-dialog">
+  <div class="modal-content">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="fork-redirect-modal-label">Existing bookshelf</h3>
+    <h3 id="fork-redirect-modal-label" class="modal-title">Existing bookshelf</h3>
   </div>
   <div class="modal-body">
     You already have a copy of this bookshelf.
@@ -118,14 +132,18 @@
     <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
     <button class="btn btn-primary">Take me there</button>
   </div>
+  </div>
+  </div>
 </div>
 
 
 <!-- Edit Repository Modal -->
-<div id="edit-repo-modal" data-backdrop="false" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="edit-repo-modal-label" aria-hidden="true">
+<div id="edit-repo-modal" data-backdrop="false" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="edit-repo-modal-label" aria-hidden="true">
+  <div class="modal-dialog">
+  <div class="modal-content">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="edit-repo-modal-label">Change Bookshelf</h3>
+    <h3 id="edit-repo-modal-label" class="modal-title">Change Bookshelf</h3>
   </div>
   <div class="modal-body">
     <div class="pull-right">
@@ -139,7 +157,7 @@
       <p>
         <a href="" data-select-repo='{"repoUser":"{{defaultRepo.repoUser}}","repoName":"{{defaultRepo.repoName}}"}'>
           Start with the demo bookshelf
-        </a> 
+        </a>
         ({{defaultRepo.repoUser}} / {{defaultRepo.repoName}})
       </p>
     {{/unless}}
@@ -179,19 +197,25 @@
   </div>
   <div class="modal-footer">
   </div>
+  </div>
+  </div>
 </div>
 
 
 <!-- Diffs Modal -->
-<div id="diffs-modal" data-backdrop="false" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="diffs-modal-label" aria-hidden="true">
+<div id="diffs-modal" data-backdrop="false" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="diffs-modal-label" aria-hidden="true">
+  <div class="modal-dialog">
+  <div class="modal-content">
   <div class="modal-header">
     <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-    <h3 id="diffs-modal-label">Unsaved Changes</h3>
+    <h3 id="diffs-modal-label" class="modal-title">Unsaved Changes</h3>
   </div>
   <div class="modal-body" style="font-size: x-small;">
   </div>
   <div class="modal-footer">
     <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
   </div>
+</div>
+</div>
 </div>
 

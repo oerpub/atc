@@ -47,7 +47,7 @@ require.config
     hbs: "#{BOWER}/require-handlebars-plugin/hbs"
 
     # ## Core Libraries
-    jquery: "#{BOWER}/jquery/jquery"
+    jquery: "#{BOWER}/jquery/dist/jquery"
     underscore: "#{BOWER}/lodash/lodash"
     backbone: "#{BOWER}/backbone/backbone"
     # Layout manager for backbone
@@ -60,19 +60,19 @@ require.config
     select2: "#{BOWER}/select2/select2"
     moment: "#{BOWER}/moment/moment"
     # Bootstrap Plugins
-    bootstrapAffix: "#{BOWER}/bootstrap/js/bootstrap-affix"
-    bootstrapAlert: "#{BOWER}/bootstrap/js/bootstrap-alert"
-    bootstrapButton: "#{BOWER}/bootstrap/js/bootstrap-button"
-    bootstrapCarousel: "#{BOWER}/bootstrap/js/bootstrap-carousel"
-    bootstrapCollapse: "#{BOWER}/bootstrap/js/bootstrap-collapse"
-    bootstrapDropdown: "#{BOWER}/bootstrap/js/bootstrap-dropdown"
-    bootstrapModal: "#{BOWER}/bootstrap/js/bootstrap-modal"
-    bootstrapPopover: "#{BOWER}/bootstrap/js/bootstrap-popover"
-    bootstrapScrollspy: "#{BOWER}/bootstrap/js/bootstrap-scrollspy"
-    bootstrapTab: "#{BOWER}/bootstrap/js/bootstrap-tab"
-    bootstrapTooltip: "#{BOWER}/bootstrap/js/bootstrap-tooltip"
-    bootstrapTransition: "#{BOWER}/bootstrap/js/bootstrap-transition"
-    bootstrapTypeahead: "#{BOWER}/bootstrap/js/bootstrap-typeahead"
+    bootstrapAffix: "#{BOWER}/bootstrap/js/affix"
+    bootstrapAlert: "#{BOWER}/bootstrap/js/alert"
+    bootstrapButton: "#{BOWER}/bootstrap/js/button"
+    bootstrapCarousel: "#{BOWER}/bootstrap/js/carousel"
+    bootstrapCollapse: "#{BOWER}/bootstrap/js/collapse"
+    bootstrapDropdown: "#{BOWER}/bootstrap/js/dropdown"
+    bootstrapModal: "#{BOWER}/bootstrap/js/modal"
+    bootstrapPopover: "#{BOWER}/bootstrap/js/popover"
+    bootstrapScrollspy: "#{BOWER}/bootstrap/js/scrollspy"
+    bootstrapTab: "#{BOWER}/bootstrap/js/tab"
+    bootstrapTooltip: "#{BOWER}/bootstrap/js/tooltip"
+    bootstrapTransition: "#{BOWER}/bootstrap/js/transition"
+    bootstrapTypeahead: "#{BOWER}/bootstrap/js/typeahead"
     bootstrapTags: "#{BOWER}/bootstrapTags/dist/bootstrap-tagsinput.min"
     bootstrapTagsCss: "#{BOWER}/bootstrapTags/dist/bootstrap-tagsinput"
 
@@ -146,7 +146,6 @@ require.config
         "css!#{BOWER}/aloha-editor/src/css/aloha.css"]
       exports: 'Aloha'
       init: () ->
-        jQuery.browser.version = 10000 # Hack to fix aloha-editor's version checking
         require(['less!styles/gh-book/aloha-override.less']) # make sure this comes in after the aloha.css
         if MINIFIED_ALOHA
           Aloha.require ["css!aloha.css"]
