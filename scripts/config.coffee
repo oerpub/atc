@@ -35,7 +35,7 @@ require.config
     diffview: "#{BOWER}/jsdifflib/diffview"
 
 
-    mathjax: '//cdn.mathjax.org/mathjax/2.0-latest/MathJax.js?config=TeX-MML-AM_HTMLorMML-full&amp;delayStartupUntil=configured'
+    mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.0/MathJax.js?config=TeX-MML-AM_HTMLorMML-full&amp;delayStartupUntil=configured'
 
     # ## Template path
     'templates/gh-book': '../templates/gh-book'

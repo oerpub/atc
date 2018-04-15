@@ -16,7 +16,7 @@ require.config
     # Loads MathJax from the CDN.
     # To disable MathJax (for development without internet) see
     # the `aloha` section in the `shim` section below.
-    mathjax: 'http://cdn.mathjax.org/mathjax/2.0-latest/MathJax.js?config=TeX-MML-AM_HTMLorMML-full&amp;delayStartupUntil=configured'
+    mathjax: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.0/MathJax.js?config=TeX-MML-AM_HTMLorMML-full&amp;delayStartupUntil=configured'
 
     # ## Template and Style paths
     templates: '../templates'
